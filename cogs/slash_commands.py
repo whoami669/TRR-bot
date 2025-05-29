@@ -662,6 +662,7 @@ class SlashCommands(commands.Cog):
         
         # Define new role structure
         new_roles = [
+            {"name": "👑 Owner", "color": 0x8A2BE2, "permissions": discord.Permissions.all()},  # Owner
             {"name": "🔥 A-Team", "color": 0xff0000, "permissions": discord.Permissions.all()},  # Admin
             {"name": "⭐ Founder", "color": 0xffd700, "permissions": discord.Permissions(administrator=True)},  # Co-owner
             {"name": "🎯 President", "color": 0x00ff00, "permissions": discord.Permissions(kick_members=True, ban_members=True, manage_messages=True, manage_channels=True)},  # Mod
@@ -725,7 +726,7 @@ class SlashCommands(commands.Cog):
             
             embed.add_field(
                 name="Role Hierarchy",
-                value="🔥 A-Team (Admin)\n⭐ Founder (Co-owner)\n🎯 President (Mod)\n🛡️ Guardian (Helper)\n💎 Elite (VIP)\n🎮 Gamer (Regular)\n🌟 Member (Basic)",
+                value="👑 Owner (Server Owner)\n🔥 A-Team (Admin)\n⭐ Founder (Co-owner)\n🎯 President (Mod)\n🛡️ Guardian (Helper)\n💎 Elite (VIP)\n🎮 Gamer (Regular)\n🌟 Member (Basic)",
                 inline=False
             )
             
