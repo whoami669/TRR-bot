@@ -334,14 +334,40 @@ class AutomationSystem(commands.Cog):
                     # Send welcome message
                     channel = member.guild.get_channel(channel_id)
                     if channel and message:
-                        formatted_message = message.replace("{user}", member.mention).replace("{server}", member.guild.name)
+                        formatted_message = message.replace("{user}", member.mention).replace("{server}", member.guild.name).replace("{count}", str(member.guild.member_count))
                         
+                        # Mimu-style welcome embed
                         embed = discord.Embed(
-                            title="👋 Welcome!",
-                            description=formatted_message,
-                            color=discord.Color.green()
+                            description=f"**{member.display_name}** just joined the server!",
+                            color=0x2B2D31  # Discord dark theme color
                         )
-                        embed.set_thumbnail(url=member.display_avatar.url)
+                        
+                        # Large profile picture
+                        embed.set_author(
+                            name=f"Welcome to {member.guild.name}!",
+                            icon_url=member.guild.icon.url if member.guild.icon else None
+                        )
+                        embed.set_image(url=member.display_avatar.url)
+                        
+                        # Member info
+                        embed.add_field(
+                            name="Member Info",
+                            value=f"**Account Created:** <t:{int(member.created_at.timestamp())}:R>\n**Member #{member.guild.member_count}**",
+                            inline=True
+                        )
+                        
+                        # Custom message
+                        if formatted_message != message:  # If variables were replaced
+                            embed.add_field(
+                                name="Message",
+                                value=formatted_message,
+                                inline=False
+                            )
+                        
+                        embed.set_footer(
+                            text=f"User ID: {member.id}",
+                            icon_url=member.display_avatar.url
+                        )
                         
                         await channel.send(embed=embed)
                     
