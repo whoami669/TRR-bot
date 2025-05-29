@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 import random
+import asyncio
 from utils.embeds import create_embed
 from PIL import Image, ImageDraw, ImageFont
 import io
@@ -116,7 +117,7 @@ class Leveling(commands.Cog):
         
         await ctx.send(embed=embed)
 
-    @commands.command(name='leaderboard', aliases=['lb'])
+    @commands.command(name='xpleaderboard', aliases=['xlb', 'levelboard'])
     async def show_leaderboard(self, ctx):
         """Show the server's top ranked members"""
         top_users = await self.bot.db.get_top_users(ctx.guild.id, 10)

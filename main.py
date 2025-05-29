@@ -16,7 +16,7 @@ load_dotenv()
 
 class ComprehensiveBot(commands.Bot):
     def __init__(self):
-        intents = discord.Intents.all()
+        intents = discord.Intents.default()
         super().__init__(
             command_prefix=get_prefix,
             intents=intents,
