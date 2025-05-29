@@ -51,7 +51,40 @@ class ComprehensiveBot(commands.Bot):
     async def on_ready(self):
         print(f"🤖 {self.user.name} is now running!")
         print(f"📊 Connected to {len(self.guilds)} guilds")
-        print(f"👥 Serving {sum(guild.member_count for guild in self.guilds)} members")
+        print(f"👥 Serving {sum(guild.member_count or 0 for guild in self.guilds)} members")
+        
+        # Generate and display invite URL
+        permissions = discord.Permissions(
+            read_messages=True,
+            send_messages=True,
+            manage_messages=True,
+            embed_links=True,
+            attach_files=True,
+            read_message_history=True,
+            add_reactions=True,
+            use_external_emojis=True,
+            manage_channels=True,
+            manage_roles=True,
+            kick_members=True,
+            ban_members=True,
+            manage_guild=True,
+            connect=True,
+            speak=True,
+            mute_members=True,
+            deafen_members=True,
+            move_members=True,
+            use_voice_activation=True,
+            manage_nicknames=True,
+            manage_webhooks=True,
+            view_audit_log=True
+        )
+        
+        invite_url = discord.utils.oauth_url(self.user.id, permissions=permissions)
+        print(f"")
+        print(f"🔗 INVITE URL:")
+        print(f"{invite_url}")
+        print(f"")
+        print(f"Copy and paste this URL into your browser to invite the bot to your server!")
         
         # Start background tasks
         self.daily_tasks.start()
