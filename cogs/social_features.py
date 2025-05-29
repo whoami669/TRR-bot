@@ -387,7 +387,7 @@ class SocialFeatures(commands.Cog):
                 for i, (text, author) in enumerate(quotes[:5], 1):
                     embed.add_field(
                         name=f"Quote {i}",
-                        value=f'"{text[:100]}{"..." if len(text) > 100 else "}" — {author}',
+                        value=f'"{text[:100]}{"..." if len(text) > 100 else ""}" — {author}',
                         inline=False
                     )
                 

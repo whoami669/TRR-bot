@@ -8,9 +8,12 @@ dependencies = [
     "aiosqlite>=0.21.0",
     "asyncio>=3.4.3",
     "discord-py>=2.5.2",
+    "matplotlib>=3.10.3",
     "openai>=1.82.1",
     "pillow>=11.2.1",
+    "pynacl>=1.5.0",
     "python-dotenv>=1.1.0",
+    "qrcode>=8.2",
     "trafilatura>=2.0.0",
     "youtube-dl>=2021.12.17",
 ]
