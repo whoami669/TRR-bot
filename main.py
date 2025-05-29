@@ -1,43 +1,161 @@
 import discord
-import os
-import asyncio
-import random
-import json
 from discord.ext import commands, tasks
-from discord.utils import get
-from datetime import datetime, timedelta
+from discord import app_commands
+import asyncio
+import os
+import logging
+from datetime import datetime, timezone
 from dotenv import load_dotenv
-from database.database import Database
-from utils.helpers import format_time, get_prefix
-from utils.embeds import create_embed
-from config.settings import CATEGORIES, DEFAULT_SETTINGS
+import aiosqlite
+import json
 
 load_dotenv()
 
-class ComprehensiveBot(commands.Bot):
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+
+# Database setup
+async def init_database():
+    async with aiosqlite.connect('ultrabot.db') as db:
+        # Core tables
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS guilds (
+                guild_id INTEGER PRIMARY KEY,
+                prefix TEXT DEFAULT '/',
+                settings TEXT DEFAULT '{}',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS users (
+                user_id INTEGER,
+                guild_id INTEGER,
+                xp INTEGER DEFAULT 0,
+                level INTEGER DEFAULT 1,
+                coins INTEGER DEFAULT 100,
+                warnings INTEGER DEFAULT 0,
+                messages_sent INTEGER DEFAULT 0,
+                voice_time INTEGER DEFAULT 0,
+                last_daily TIMESTAMP,
+                last_work TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (user_id, guild_id)
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS moderation_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER,
+                user_id INTEGER,
+                moderator_id INTEGER,
+                action TEXT,
+                reason TEXT,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS automod_settings (
+                guild_id INTEGER PRIMARY KEY,
+                spam_protection BOOLEAN DEFAULT 1,
+                link_filter BOOLEAN DEFAULT 1,
+                word_filter BOOLEAN DEFAULT 1,
+                caps_filter BOOLEAN DEFAULT 1,
+                emoji_spam_filter BOOLEAN DEFAULT 1,
+                banned_words TEXT DEFAULT '[]',
+                immune_roles TEXT DEFAULT '[]'
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS chat_analytics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER,
+                channel_id INTEGER,
+                user_id INTEGER,
+                message_length INTEGER,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                sentiment_score REAL,
+                toxicity_score REAL
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS reminders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                guild_id INTEGER,
+                channel_id INTEGER,
+                reminder_text TEXT,
+                remind_at TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS custom_commands (
+                guild_id INTEGER,
+                command_name TEXT,
+                response TEXT,
+                created_by INTEGER,
+                usage_count INTEGER DEFAULT 0,
+                PRIMARY KEY (guild_id, command_name)
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS starboard (
+                message_id INTEGER PRIMARY KEY,
+                guild_id INTEGER,
+                channel_id INTEGER,
+                author_id INTEGER,
+                star_count INTEGER DEFAULT 0,
+                starboard_message_id INTEGER
+            )
+        ''')
+        
+        await db.commit()
+
+class UltraBot(commands.Bot):
     def __init__(self):
-        intents = discord.Intents.default()
+        intents = discord.Intents.all()
         super().__init__(
-            command_prefix=get_prefix,
+            command_prefix=self.get_prefix,
             intents=intents,
             help_command=None,
             case_insensitive=True
         )
-        self.db = Database()
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(timezone.utc)
         
+    async def get_prefix(self, message):
+        if not message.guild:
+            return '/'
+        
+        async with aiosqlite.connect('ultrabot.db') as db:
+            async with db.execute('SELECT prefix FROM guilds WHERE guild_id = ?', (message.guild.id,)) as cursor:
+                result = await cursor.fetchone()
+                return result[0] if result else '/'
+
     async def setup_hook(self):
-        """Load all cogs and sync commands"""
+        # Initialize database
+        await init_database()
+        
+        # Load all cogs
         cogs = [
-            'cogs.moderation',
-            'cogs.music',
-            'cogs.economy',
-            'cogs.leveling',
-            'cogs.utility',
-            'cogs.fun',
-            'cogs.tickets',
-            'cogs.slash_commands',
-            'cogs.auto_gaming'
+            'cogs.ai_features',
+            'cogs.moderation_advanced',
+            'cogs.entertainment_suite',
+            'cogs.utility_toolkit',
+            'cogs.social_features',
+            'cogs.analytics_monitoring',
+            'cogs.automation_system',
+            'cogs.economy_advanced',
+            'cogs.music_premium',
+            'cogs.customization_hub',
+            'cogs.security_suite',
+            'cogs.productivity_tools',
         ]
         
         for cog in cogs:
@@ -54,439 +172,117 @@ class ComprehensiveBot(commands.Bot):
         except Exception as e:
             print(f"❌ Failed to sync commands: {e}")
         
-        # Initialize database
-        await self.db.init_db()
-        
+        # Start background tasks
+        self.cleanup_tasks.start()
+        self.analytics_processor.start()
+        self.reminder_checker.start()
+
     async def on_ready(self):
-        print(f"🤖 {self.user.name} is now running!")
+        print(f"🤖 {self.user.name} - Ultra Multi-Functional Bot")
         print(f"📊 Connected to {len(self.guilds)} guilds")
         print(f"👥 Serving {sum(guild.member_count or 0 for guild in self.guilds)} members")
+        print(f"🚀 Ready for maximum productivity and fun!")
         
-        # Generate and display invite URL
-        permissions = discord.Permissions(
-            read_messages=True,
-            send_messages=True,
-            manage_messages=True,
-            embed_links=True,
-            attach_files=True,
-            read_message_history=True,
-            add_reactions=True,
-            use_external_emojis=True,
-            manage_channels=True,
-            manage_roles=True,
-            kick_members=True,
-            ban_members=True,
-            manage_guild=True,
-            connect=True,
-            speak=True,
-            mute_members=True,
-            deafen_members=True,
-            move_members=True,
-            use_voice_activation=True,
-            manage_nicknames=True,
-            manage_webhooks=True,
-            view_audit_log=True
+        await self.change_presence(
+            activity=discord.Activity(
+                type=discord.ActivityType.watching,
+                name="your community grow | /help"
+            )
         )
-        
-        invite_url = discord.utils.oauth_url(self.user.id, permissions=permissions)
-        print(f"")
-        print(f"🔗 INVITE URL:")
-        print(f"{invite_url}")
-        print(f"")
-        print(f"Copy and paste this URL into your browser to invite the bot to your server!")
-        
-        # Start background tasks
-        self.daily_tasks.start()
-        self.auto_backup.start()
-        self.status_rotation.start()
-        
-        # Setup servers
-        for guild in self.guilds:
-            await self.setup_comprehensive_server(guild)
 
-    async def setup_comprehensive_server(self, guild):
-        """Setup comprehensive server structure"""
-        print(f"🏗️ Setting up server: {guild.name}")
-        
-        # Initialize server in database
-        await self.db.init_server(guild.id)
-        
-        existing_channels = [channel.name for channel in guild.channels]
-        existing_categories = [category.name for category in guild.categories]
-        
-        # Create comprehensive channel structure
-        for category_name, channels in CATEGORIES.items():
-            category = get(guild.categories, name=category_name)
-            if category_name not in existing_categories:
-                category = await guild.create_category(category_name)
-                print(f"📁 Created category: {category_name}")
-            
-            for channel_data in channels:
-                if isinstance(channel_data, dict):
-                    channel_name = channel_data['name']
-                    channel_type = channel_data.get('type', 'text')
-                    overwrites = channel_data.get('overwrites', {})
-                else:
-                    channel_name = channel_data
-                    channel_type = 'text'
-                    overwrites = {}
+    async def on_guild_join(self, guild):
+        # Initialize guild in database
+        async with aiosqlite.connect('ultrabot.db') as db:
+            await db.execute(
+                'INSERT OR IGNORE INTO guilds (guild_id) VALUES (?)',
+                (guild.id,)
+            )
+            await db.commit()
+
+    @tasks.loop(hours=1)
+    async def cleanup_tasks(self):
+        """Clean up expired data"""
+        async with aiosqlite.connect('ultrabot.db') as db:
+            # Clean old reminder entries
+            await db.execute(
+                'DELETE FROM reminders WHERE remind_at < datetime("now", "-7 days")'
+            )
+            # Clean old analytics data (keep 30 days)
+            await db.execute(
+                'DELETE FROM chat_analytics WHERE timestamp < datetime("now", "-30 days")'
+            )
+            await db.commit()
+
+    @tasks.loop(minutes=5)
+    async def analytics_processor(self):
+        """Process chat analytics and generate insights"""
+        # This would contain analytics processing logic
+        pass
+
+    @tasks.loop(minutes=1)
+    async def reminder_checker(self):
+        """Check and send reminders"""
+        async with aiosqlite.connect('ultrabot.db') as db:
+            async with db.execute(
+                'SELECT * FROM reminders WHERE remind_at <= datetime("now")'
+            ) as cursor:
+                reminders = await cursor.fetchall()
                 
-                if channel_name not in existing_channels:
-                    # Convert overwrites to Discord.py format
-                    permission_overwrites = {}
-                    for role_name, perms in overwrites.items():
-                        if role_name == '@everyone':
-                            role = guild.default_role
-                        else:
-                            role = get(guild.roles, name=role_name)
-                            if not role:
-                                role = await guild.create_role(name=role_name)
+                for reminder in reminders:
+                    try:
+                        channel = self.get_channel(reminder[3])
+                        user = self.get_user(reminder[1])
+                        if channel and user:
+                            embed = discord.Embed(
+                                title="⏰ Reminder",
+                                description=reminder[4],
+                                color=discord.Color.blue(),
+                                timestamp=datetime.now(timezone.utc)
+                            )
+                            embed.set_footer(text=f"Reminder for {user.display_name}")
+                            await channel.send(f"{user.mention}", embed=embed)
+                            
+                        # Remove completed reminder
+                        await db.execute('DELETE FROM reminders WHERE id = ?', (reminder[0],))
+                    except Exception as e:
+                        print(f"Error sending reminder: {e}")
                         
-                        overwrite = discord.PermissionOverwrite(**perms)
-                        permission_overwrites[role] = overwrite
-                    
-                    if channel_type == 'voice':
-                        await guild.create_voice_channel(
-                            channel_name, 
-                            category=category,
-                            overwrites=permission_overwrites
-                        )
-                    else:
-                        channel = await guild.create_text_channel(
-                            channel_name, 
-                            category=category,
-                            overwrites=permission_overwrites
-                        )
-                        
-                        # Setup special channels
-                        if channel_name == 'rules':
-                            await self.setup_rules_channel(channel)
-                        elif channel_name == 'reaction-roles':
-                            await self.setup_reaction_roles(channel)
-                    
-                    print(f"📺 Created {channel_type} channel: {channel_name}")
-        
-        # Create essential roles
-        await self.create_essential_roles(guild)
-        
-        # Setup auto-moderation
-        await self.setup_automod(guild)
+                await db.commit()
 
-    async def create_essential_roles(self, guild):
-        """Create essential server roles"""
-        essential_roles = [
-            {'name': 'Owner', 'color': 0xFF0000, 'permissions': discord.Permissions.all()},
-            {'name': 'Admin', 'color': 0xFF4500, 'permissions': discord.Permissions.all()},
-            {'name': 'Moderator', 'color': 0x00FF00, 'permissions': discord.Permissions(
-                kick_members=True, ban_members=True, manage_messages=True, 
-                mute_members=True, deafen_members=True, move_members=True
-            )},
-            {'name': 'Helper', 'color': 0x0099FF, 'permissions': discord.Permissions(
-                manage_messages=True, mute_members=True
-            )},
-            {'name': 'VIP', 'color': 0xFFD700, 'permissions': discord.Permissions(
-                create_instant_invite=True, change_nickname=True, use_external_emojis=True
-            )},
-            {'name': 'Member', 'color': 0x808080, 'permissions': discord.Permissions(
-                read_messages=True, send_messages=True, connect=True, speak=True
-            )},
-            {'name': 'Muted', 'color': 0x2F3136, 'permissions': discord.Permissions(
-                read_messages=True, connect=True
-            )}
-        ]
-        
-        for role_data in essential_roles:
-            role = get(guild.roles, name=role_data['name'])
-            if not role:
-                role = await guild.create_role(
-                    name=role_data['name'],
-                    color=role_data['color'],
-                    permissions=role_data['permissions']
-                )
-                print(f"👑 Created role: {role_data['name']}")
-
-    async def setup_rules_channel(self, channel):
-        """Setup rules channel with comprehensive rules"""
-        rules = [
-            "🔹 **Be Respectful**: Treat all members with kindness and respect",
-            "🔹 **No Spam**: Avoid excessive posting, caps lock, or repetitive messages",
-            "🔹 **No NSFW Content**: Keep all content appropriate for all ages",
-            "🔹 **No Harassment**: Bullying, hate speech, or discrimination is not tolerated",
-            "🔹 **Use Appropriate Channels**: Post content in the relevant channels",
-            "🔹 **No Self-Promotion**: Don't advertise without permission",
-            "🔹 **Follow Discord TOS**: All Discord Terms of Service apply",
-            "🔹 **Listen to Staff**: Respect moderator decisions and instructions",
-            "🔹 **No Doxxing**: Don't share personal information of others",
-            "🔹 **Have Fun**: Enjoy your time in our community!"
-        ]
-        
-        embed = create_embed(
-            title="📋 Server Rules",
-            description="Please read and follow these rules to maintain a positive community",
-            color=0x00FF00
-        )
-        
-        for i, rule in enumerate(rules, 1):
-            embed.add_field(name=f"Rule {i}", value=rule, inline=False)
-        
-        embed.set_footer(text="By staying in this server, you agree to follow these rules")
-        
-        await channel.send(embed=embed)
-
-    async def setup_reaction_roles(self, channel):
-        """Setup reaction roles system"""
-        embed = create_embed(
-            title="🎭 Reaction Roles",
-            description="React to get roles! Click the reactions below to assign yourself roles.",
-            color=0x7289DA
-        )
-        
-        role_emojis = {
-            "🎮": "Gamer",
-            "🎵": "Music Lover",
-            "📚": "Bookworm", 
-            "🎨": "Artist",
-            "💻": "Developer",
-            "🏃": "Fitness",
-            "🎬": "Movie Buff",
-            "📰": "News Updates"
-        }
-        
-        description = ""
-        for emoji, role_name in role_emojis.items():
-            description += f"{emoji} - {role_name}\n"
-        
-        embed.add_field(name="Available Roles", value=description, inline=False)
-        
-        message = await channel.send(embed=embed)
-        
-        # Add reactions
-        for emoji in role_emojis.keys():
-            await message.add_reaction(emoji)
-        
-        # Store in database
-        await self.db.add_reaction_role_message(channel.guild.id, message.id, role_emojis)
-
-    async def setup_automod(self, guild):
-        """Setup automatic moderation"""
-        # This would be expanded with actual automod rules
-        await self.db.update_server_settings(guild.id, {'automod_enabled': True})
-
-    async def on_member_join(self, member):
-        """Enhanced member join handler"""
-        guild = member.guild
-        
-        # Add default role
-        default_role = get(guild.roles, name="Member")
-        if default_role:
-            await member.add_roles(default_role)
-        
-        # Send welcome message
-        welcome_channel = get(guild.text_channels, name="welcome")
-        if welcome_channel:
-            embed = create_embed(
-                title=f"Welcome to {guild.name}! 🎉",
-                description=f"Hey {member.mention}, we're glad you're here!",
-                color=0x00FF00
-            )
-            embed.add_field(
-                name="Getting Started", 
-                value="• Check out <#rules> for server rules\n• Introduce yourself in <#introductions>\n• Get roles in <#reaction-roles>", 
-                inline=False
-            )
-            embed.set_thumbnail(url=member.avatar.url if member.avatar else member.default_avatar.url)
-            embed.set_footer(text=f"You are member #{guild.member_count}")
-            
-            await welcome_channel.send(embed=embed)
-        
-        # Log join
-        log_channel = get(guild.text_channels, name="member-logs")
-        if log_channel:
-            embed = create_embed(
-                title="Member Joined",
-                description=f"{member.mention} ({member}) joined the server",
-                color=0x00FF00
-            )
-            embed.add_field(name="Account Created", value=format_time(member.created_at), inline=True)
-            embed.add_field(name="Member Count", value=str(guild.member_count), inline=True)
-            await log_channel.send(embed=embed)
-
-    async def on_member_remove(self, member):
-        """Handle member leaving"""
-        guild = member.guild
-        log_channel = get(guild.text_channels, name="member-logs")
-        if log_channel:
-            embed = create_embed(
-                title="Member Left",
-                description=f"{member} left the server",
-                color=0xFF0000
-            )
-            embed.add_field(name="Joined", value=format_time(member.joined_at), inline=True)
-            embed.add_field(name="Member Count", value=str(guild.member_count), inline=True)
-            await log_channel.send(embed=embed)
-
-    async def on_raw_reaction_add(self, payload):
-        """Handle reaction role assignment"""
-        if payload.user_id == self.user.id:
-            return
-        
-        reaction_roles = await self.db.get_reaction_roles(payload.guild_id, payload.message_id)
-        if not reaction_roles:
-            return
-        
-        emoji = str(payload.emoji)
-        if emoji not in reaction_roles:
-            return
-        
-        guild = self.get_guild(payload.guild_id)
-        member = guild.get_member(payload.user_id)
-        role = get(guild.roles, name=reaction_roles[emoji])
-        
-        if role and member:
-            await member.add_roles(role)
-
-    async def on_raw_reaction_remove(self, payload):
-        """Handle reaction role removal"""
-        if payload.user_id == self.user.id:
-            return
-        
-        reaction_roles = await self.db.get_reaction_roles(payload.guild_id, payload.message_id)
-        if not reaction_roles:
-            return
-        
-        emoji = str(payload.emoji)
-        if emoji not in reaction_roles:
-            return
-        
-        guild = self.get_guild(payload.guild_id)
-        member = guild.get_member(payload.user_id)
-        role = get(guild.roles, name=reaction_roles[emoji])
-        
-        if role and member:
-            await member.remove_roles(role)
+    @cleanup_tasks.before_loop
+    @analytics_processor.before_loop
+    @reminder_checker.before_loop
+    async def before_loops(self):
+        await self.wait_until_ready()
 
     async def on_message(self, message):
-        """Enhanced message handler"""
         if message.author.bot:
             return
-        
-        # XP system
-        if not message.content.startswith(await get_prefix(self, message)):
-            await self.db.add_xp(message.guild.id, message.author.id, random.randint(15, 25))
-        
-        # Auto-responses
-        content = message.content.lower()
-        if any(word in content for word in ['hello', 'hi', 'hey']):
-            if random.randint(1, 10) == 1:  # 10% chance
-                await message.add_reaction('👋')
+            
+        # Process analytics
+        if message.guild:
+            async with aiosqlite.connect('ultrabot.db') as db:
+                await db.execute('''
+                    INSERT OR IGNORE INTO users (user_id, guild_id) VALUES (?, ?)
+                ''', (message.author.id, message.guild.id))
+                
+                await db.execute('''
+                    UPDATE users SET messages_sent = messages_sent + 1 
+                    WHERE user_id = ? AND guild_id = ?
+                ''', (message.author.id, message.guild.id))
+                
+                await db.execute('''
+                    INSERT INTO chat_analytics (guild_id, channel_id, user_id, message_length)
+                    VALUES (?, ?, ?, ?)
+                ''', (message.guild.id, message.channel.id, message.author.id, len(message.content)))
+                
+                await db.commit()
         
         await self.process_commands(message)
 
-    @tasks.loop(hours=24)
-    async def daily_tasks(self):
-        """Daily automated tasks"""
-        for guild in self.guilds:
-            # Daily engagement prompts
-            general_channel = get(guild.text_channels, name="general-chat")
-            if general_channel:
-                prompts = [
-                    "🎮 What's everyone playing today?",
-                    "📸 Share your best screenshot of the week!",
-                    "🎯 What are your weekend gaming plans?",
-                    "😂 Drop your favorite meme!",
-                    "💭 What's your unpopular gaming opinion?",
-                    "🏆 What achievement are you most proud of?",
-                    "🎵 What music do you listen to while gaming?",
-                    "🍕 What's your favorite gaming snack?"
-                ]
-                
-                embed = create_embed(
-                    title="Daily Discussion",
-                    description=random.choice(prompts),
-                    color=0x7289DA
-                )
-                await general_channel.send(embed=embed)
-
-    @tasks.loop(hours=168)  # Weekly
-    async def auto_backup(self):
-        """Automatically backup server data"""
-        for guild in self.guilds:
-            await self.db.backup_server_data(guild.id)
-
-    @tasks.loop(minutes=5)
-    async def status_rotation(self):
-        """Rotate bot status"""
-        statuses = [
-            discord.Activity(type=discord.ActivityType.watching, name=f"{len(self.guilds)} servers"),
-            discord.Activity(type=discord.ActivityType.listening, name="your commands"),
-            discord.Activity(type=discord.ActivityType.playing, name="with Discord.py"),
-            discord.Activity(type=discord.ActivityType.competing, name="server management")
-        ]
-        
-        await self.change_presence(activity=random.choice(statuses))
-
-    @commands.command(name='help')
-    async def help_command(self, ctx, *, command_name=None):
-        """Custom help command"""
-        if command_name:
-            # Show help for specific command
-            command = self.get_command(command_name)
-            if command:
-                embed = create_embed(
-                    title=f"Help: {command.name}",
-                    description=command.help or "No description available",
-                    color=0x7289DA
-                )
-                if command.usage:
-                    embed.add_field(name="Usage", value=f"`{ctx.prefix}{command.name} {command.usage}`", inline=False)
-                if command.aliases:
-                    embed.add_field(name="Aliases", value=", ".join(command.aliases), inline=False)
-            else:
-                embed = create_embed(
-                    title="Command Not Found",
-                    description=f"No command named '{command_name}' found.",
-                    color=0xFF0000
-                )
-        else:
-            # Show general help
-            embed = create_embed(
-                title="🤖 Bot Commands Help",
-                description="Here are all available command categories:",
-                color=0x7289DA
-            )
-            
-            cog_commands = {}
-            for command in self.commands:
-                cog_name = command.cog_name or "General"
-                if cog_name not in cog_commands:
-                    cog_commands[cog_name] = []
-                cog_commands[cog_name].append(command.name)
-            
-            for cog_name, commands in cog_commands.items():
-                embed.add_field(
-                    name=f"📂 {cog_name}",
-                    value=f"`{', '.join(commands[:5])}{'...' if len(commands) > 5 else ''}`",
-                    inline=True
-                )
-            
-            embed.add_field(
-                name="💡 Tip",
-                value=f"Use `{ctx.prefix}help <command>` for detailed command info",
-                inline=False
-            )
-        
-        await ctx.send(embed=embed)
-
-# Create and run bot
-bot = ComprehensiveBot()
+async def main():
+    bot = UltraBot()
+    await bot.start(os.getenv('DISCORD_TOKEN'))
 
 if __name__ == "__main__":
-    TOKEN = os.getenv("DISCORD_TOKEN")
-    if not TOKEN:
-        print("❌ DISCORD_TOKEN not found in environment variables!")
-        exit(1)
-    
-    try:
-        bot.run(TOKEN)
-    except Exception as e:
-        print(f"❌ Failed to start bot: {e}")
+    asyncio.run(main())
