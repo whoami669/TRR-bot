@@ -1,99 +1,59 @@
 const express = require('express');
-const { Pool } = require('pg');
 const router = express.Router();
 
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
-});
-
-// Get bot statistics
+// Bot statistics endpoint
 router.get('/stats', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM bot_stats ORDER BY updated_at DESC LIMIT 1');
-    const stats = result.rows[0] || {
-      guild_count: 0,
-      user_count: 0,
-      message_count: 0,
-      command_count: 0,
-      uptime: 0
-    };
-    res.json(stats);
-  } catch (error) {
-    console.error('API stats error:', error);
-    res.status(500).json({ error: 'Unable to fetch statistics' });
-  }
+    try {
+        // In a real implementation, this would fetch data from the bot
+        const stats = {
+            guild_count: 0,
+            user_count: 0,
+            command_count: 0,
+            uptime: 0,
+            status: 'online'
+        };
+
+        res.json(stats);
+    } catch (error) {
+        console.error('Stats API error:', error);
+        res.status(500).json({ error: 'Failed to fetch statistics' });
+    }
 });
 
-// Update bot statistics
-router.post('/stats', async (req, res) => {
-  try {
-    const { guild_count, user_count, message_count, command_count, uptime } = req.body;
-    
-    await pool.query(`
-      INSERT INTO bot_stats (guild_count, user_count, message_count, command_count, uptime, updated_at)
-      VALUES ($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)
-    `, [guild_count, user_count, message_count, command_count, uptime]);
-    
-    res.json({ success: true });
-  } catch (error) {
-    console.error('API stats update error:', error);
-    res.status(500).json({ error: 'Unable to update statistics' });
-  }
-});
-
-// Get server configurations
+// Server list endpoint
 router.get('/servers', async (req, res) => {
-  try {
-    const result = await pool.query('SELECT * FROM server_configs ORDER BY guild_name ASC');
-    res.json(result.rows);
-  } catch (error) {
-    console.error('API servers error:', error);
-    res.status(500).json({ error: 'Unable to fetch servers' });
-  }
+    try {
+        const servers = [];
+        res.json(servers);
+    } catch (error) {
+        console.error('Servers API error:', error);
+        res.status(500).json({ error: 'Failed to fetch servers' });
+    }
 });
 
-// Update server configuration
-router.post('/servers/:guildId', async (req, res) => {
-  try {
-    const { guildId } = req.params;
-    const { guild_name, prefix, welcome_channel, log_channel, auto_role, settings } = req.body;
-    
-    await pool.query(`
-      INSERT INTO server_configs (guild_id, guild_name, prefix, welcome_channel, log_channel, auto_role, settings, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, CURRENT_TIMESTAMP)
-      ON CONFLICT (guild_id) 
-      DO UPDATE SET 
-        guild_name = $2,
-        prefix = $3,
-        welcome_channel = $4,
-        log_channel = $5,
-        auto_role = $6,
-        settings = $7,
-        updated_at = CURRENT_TIMESTAMP
-    `, [guildId, guild_name, prefix, welcome_channel, log_channel, auto_role, JSON.stringify(settings)]);
-    
-    res.json({ success: true });
-  } catch (error) {
-    console.error('API server config error:', error);
-    res.status(500).json({ error: 'Unable to update server configuration' });
-  }
+// Command usage analytics
+router.get('/analytics/commands', async (req, res) => {
+    try {
+        const commandAnalytics = {
+            total: 0,
+            top_commands: [],
+            recent_activity: []
+        };
+
+        res.json(commandAnalytics);
+    } catch (error) {
+        console.error('Command analytics API error:', error);
+        res.status(500).json({ error: 'Failed to fetch command analytics' });
+    }
 });
 
-// Get analytics data
-router.get('/analytics', async (req, res) => {
-  try {
-    const { days = 30 } = req.query;
-    const result = await pool.query(`
-      SELECT * FROM bot_stats 
-      WHERE updated_at >= NOW() - INTERVAL '${parseInt(days)} days'
-      ORDER BY updated_at ASC
-    `);
-    res.json(result.rows);
-  } catch (error) {
-    console.error('API analytics error:', error);
-    res.status(500).json({ error: 'Unable to fetch analytics data' });
-  }
+// Health check endpoint
+router.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        service: 'UltraBot Web Interface'
+    });
 });
 
 module.exports = router;

@@ -1,0 +1,147 @@
+<% layout('layout') -%>
+
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h1 class="display-4 fw-bold mb-3">Bot Commands</h1>
+            <p class="lead text-muted">Complete reference for all UltraBot slash commands across 28+ specialized modules</p>
+        </div>
+    </div>
+
+    <!-- Command Search -->
+    <div class="row mb-5">
+        <div class="col-lg-6 mx-auto">
+            <div class="input-group input-group-lg">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+                <input type="text" class="form-control" id="commandSearch" placeholder="Search commands...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Categories -->
+    <% commandCategories.forEach(function(category, index) { %>
+        <div class="row mb-5" id="category-<%= index %>">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">
+                            <i class="fas fa-folder-open me-2"></i><%= category.name %>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <% category.commands.forEach(function(command) { %>
+                                <div class="col-lg-6 mb-3">
+                                    <div class="command-item p-3 border rounded-3 h-100">
+                                        <div class="d-flex align-items-start">
+                                            <div class="flex-shrink-0 me-3">
+                                                <span class="badge bg-dark fs-6 font-monospace"><%= command.name %></span>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <p class="mb-0 text-muted"><%= command.description %></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }); %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% }); %>
+
+    <!-- Quick Start Guide -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-header bg-transparent border-0">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-rocket me-2 text-primary"></i>Quick Start Guide
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center p-3">
+                                <div class="bg-primary bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                    <i class="fas fa-plus fa-2x text-primary"></i>
+                                </div>
+                                <h5>1. Add Bot</h5>
+                                <p class="text-muted">Invite UltraBot to your Discord server with administrator permissions</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center p-3">
+                                <div class="bg-success bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                    <i class="fas fa-cog fa-2x text-success"></i>
+                                </div>
+                                <h5>2. Configure</h5>
+                                <p class="text-muted">Use setup commands to configure channels, roles, and preferences</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="text-center p-3">
+                                <div class="bg-info bg-opacity-10 rounded-circle p-3 d-inline-flex mb-3">
+                                    <i class="fas fa-play fa-2x text-info"></i>
+                                </div>
+                                <h5>3. Enjoy</h5>
+                                <p class="text-muted">Start using slash commands to manage and engage your community</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call to Action -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="text-center">
+                <h3 class="mb-3">Ready to Transform Your Server?</h3>
+                <p class="lead mb-4">Experience the power of UltraBot's comprehensive command suite</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/invite" class="btn btn-primary btn-lg" target="_blank">
+                        <i class="fab fa-discord me-2"></i>Add to Discord
+                    </a>
+                    <a href="/dashboard" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-chart-line me-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Command search functionality
+document.getElementById('commandSearch').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const commandItems = document.querySelectorAll('.command-item');
+    
+    commandItems.forEach(item => {
+        const commandName = item.querySelector('.badge').textContent.toLowerCase();
+        const commandDesc = item.querySelector('.text-muted').textContent.toLowerCase();
+        
+        if (commandName.includes(searchTerm) || commandDesc.includes(searchTerm)) {
+            item.style.display = 'block';
+            item.closest('.col-lg-6').style.display = 'block';
+        } else {
+            item.closest('.col-lg-6').style.display = 'none';
+        }
+    });
+    
+    // Hide empty categories
+    document.querySelectorAll('[id^="category-"]').forEach(category => {
+        const visibleCommands = category.querySelectorAll('.col-lg-6[style*="display: block"], .col-lg-6:not([style*="display: none"])');
+        if (visibleCommands.length === 0 && searchTerm !== '') {
+            category.style.display = 'none';
+        } else {
+            category.style.display = 'block';
+        }
+    });
+});
+</script>

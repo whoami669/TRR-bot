@@ -1,0 +1,65 @@
+<% layout('layout') -%>
+
+<div class="container py-5">
+    <div class="row text-center mb-5">
+        <div class="col-12">
+            <h1 class="display-4 fw-bold mb-3">Comprehensive Features</h1>
+            <p class="lead text-muted">Discover all the powerful capabilities that make UltraBot the ultimate Discord server management solution</p>
+        </div>
+    </div>
+
+    <% features.forEach(function(feature, index) { %>
+        <div class="row mb-5 <%= index % 2 === 1 ? 'flex-row-reverse' : '' %>">
+            <div class="col-lg-6 mb-4">
+                <div class="feature-header mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-<%= feature.color %> bg-opacity-10 rounded-3 p-3 me-3">
+                            <i class="<%= feature.icon %> fa-2x text-<%= feature.color %>"></i>
+                        </div>
+                        <h2 class="h3 mb-0"><%= feature.category %></h2>
+                    </div>
+                </div>
+                
+                <div class="feature-list">
+                    <% feature.items.forEach(function(item) { %>
+                        <div class="d-flex align-items-start mb-3">
+                            <i class="fas fa-check-circle text-<%= feature.color %> me-3 mt-1"></i>
+                            <span><%= item %></span>
+                        </div>
+                    <% }); %>
+                </div>
+            </div>
+            
+            <div class="col-lg-6 mb-4">
+                <div class="feature-showcase p-4 bg-light rounded-3 h-100 d-flex align-items-center justify-content-center">
+                    <div class="text-center">
+                        <i class="<%= feature.icon %> display-1 text-<%= feature.color %> opacity-50 mb-3"></i>
+                        <h4 class="text-muted">Interactive Demo</h4>
+                        <p class="text-muted">Experience <%= feature.category.toLowerCase() %> features in action</p>
+                        <button class="btn btn-outline-<%= feature.color %> btn-lg" disabled>
+                            Coming Soon
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <% }); %>
+
+    <!-- Call to Action -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="text-center bg-primary bg-opacity-10 rounded-3 p-5">
+                <h3 class="mb-3">Ready to Experience All Features?</h3>
+                <p class="lead mb-4">Add UltraBot to your Discord server and unlock the full potential of community management</p>
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="/invite" class="btn btn-primary btn-lg" target="_blank">
+                        <i class="fab fa-discord me-2"></i>Add to Server
+                    </a>
+                    <a href="/commands" class="btn btn-outline-primary btn-lg">
+                        <i class="fas fa-terminal me-2"></i>View Commands
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

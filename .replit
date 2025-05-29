@@ -20,6 +20,10 @@ args = "Discord Bot"
 task = "workflow.run"
 args = "discord_bot"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Website"
+
 [[workflows.workflow]]
 name = "Discord Bot"
 author = "agent"
@@ -36,5 +40,18 @@ author = "agent"
 task = "shell.exec"
 args = "pip install discord.py python-dotenv aiosqlite youtube-dl Pillow aiohttp"
 
+[[workflows.workflow]]
+name = "Website"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "node server.js"
+waitForPort = 5000
+
 [deployment]
 run = ["sh", "-c", "python main.py"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
