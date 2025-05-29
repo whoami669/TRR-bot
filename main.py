@@ -208,6 +208,10 @@ class UltraBot(commands.Bot):
             'cogs.content_amplifier',
             'cogs.momentum_engine',
             'cogs.interaction_engine',
+            'cogs.activity_waves',
+            'cogs.chaos_engine',
+            'cogs.energy_multiplier',
+            'cogs.engagement_overdrive',
         ]
         
         for cog in cogs:
