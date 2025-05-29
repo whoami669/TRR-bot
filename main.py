@@ -204,6 +204,10 @@ class UltraBot(commands.Bot):
             'cogs.auto_gaming',
             'cogs.activity_boosters',
             'cogs.viral_content',
+            'cogs.hype_machine',
+            'cogs.content_amplifier',
+            'cogs.momentum_engine',
+            'cogs.interaction_engine',
         ]
         
         for cog in cogs:
