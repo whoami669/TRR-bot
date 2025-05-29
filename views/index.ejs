@@ -1,0 +1,218 @@
+<% layout('layout') -%>
+
+<!-- Hero Section -->
+<section class="hero-section bg-primary text-white py-5">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-4">
+                    <i class="fas fa-robot me-3"></i>UltraBot
+                </h1>
+                <p class="lead mb-4">
+                    The most advanced Discord server management bot with 28+ specialized modules and 110+ commands. 
+                    Transform your server with AI-powered moderation, community engagement, and comprehensive automation.
+                </p>
+                <div class="d-flex gap-3">
+                    <a href="/invite" class="btn btn-light btn-lg" target="_blank">
+                        <i class="fab fa-discord me-2"></i>Invite to Server
+                    </a>
+                    <a href="/dashboard" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-chart-line me-2"></i>View Dashboard
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="bot-preview p-4">
+                    <i class="fas fa-robot display-1 text-light opacity-75"></i>
+                    <div class="mt-3">
+                        <span class="badge bg-success fs-6">
+                            <i class="fas fa-circle me-1"></i>Online
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Overview -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold mb-3">Comprehensive Server Management</h2>
+                <p class="lead text-muted">Everything you need to build and manage a thriving Discord community</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="feature-card h-100 p-4 border rounded-3 shadow-sm">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-brain fa-3x text-primary"></i>
+                    </div>
+                    <h4>AI-Powered Intelligence</h4>
+                    <p class="text-muted">
+                        Advanced AI moderation, sentiment analysis, server memory system, and intelligent behavior monitoring 
+                        with customizable personalities and real-time translation.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card h-100 p-4 border rounded-3 shadow-sm">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-gamepad fa-3x text-success"></i>
+                    </div>
+                    <h4>Gaming & Entertainment</h4>
+                    <p class="text-muted">
+                        Complete gamer suite, content creator tools, streaming utilities, esports management, 
+                        and entertainment systems to keep your community engaged.
+                    </p>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="feature-card h-100 p-4 border rounded-3 shadow-sm">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-cogs fa-3x text-warning"></i>
+                    </div>
+                    <h4>Advanced Automation</h4>
+                    <p class="text-muted">
+                        Sophisticated automation systems, activity boosters, engagement waves, chaos engines, 
+                        and community revival tools that work together seamlessly.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="bg-light py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <h3 class="display-4 fw-bold text-primary" id="serverCount">0</h3>
+                    <p class="text-muted mb-0">Servers</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <h3 class="display-4 fw-bold text-success" id="userCount">0</h3>
+                    <p class="text-muted mb-0">Users</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <h3 class="display-4 fw-bold text-warning">110+</h3>
+                    <p class="text-muted mb-0">Commands</p>
+                </div>
+            </div>
+            <div class="col-md-3 mb-4">
+                <div class="stat-card">
+                    <h3 class="display-4 fw-bold text-info">28+</h3>
+                    <p class="text-muted mb-0">Modules</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Module Showcase -->
+<section class="py-5">
+    <div class="container">
+        <div class="row text-center mb-5">
+            <div class="col-12">
+                <h2 class="display-5 fw-bold mb-3">Specialized Modules</h2>
+                <p class="lead text-muted">Each module is designed to excel in specific areas of server management</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="module-card p-4 border rounded-3 h-100">
+                    <h5><i class="fas fa-shield-alt text-danger me-2"></i>Advanced Moderation</h5>
+                    <p class="text-muted mb-3">AI behavior analysis, intelligent lockdown, content filtering, ban appeals</p>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-light text-dark">Risk Scoring</span>
+                        <span class="badge bg-light text-dark">Auto Actions</span>
+                        <span class="badge bg-light text-dark">Appeals System</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="module-card p-4 border rounded-3 h-100">
+                    <h5><i class="fas fa-palette text-purple me-2"></i>Creative Studio</h5>
+                    <p class="text-muted mb-3">Art commissions, portfolios, challenges, collaboration tools</p>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-light text-dark">Commissions</span>
+                        <span class="badge bg-light text-dark">Portfolios</span>
+                        <span class="badge bg-light text-dark">Challenges</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="module-card p-4 border rounded-3 h-100">
+                    <h5><i class="fas fa-video text-info me-2"></i>Content Creator Suite</h5>
+                    <p class="text-muted mb-3">Stream management, collaboration tools, milestone tracking</p>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-light text-dark">Announcements</span>
+                        <span class="badge bg-light text-dark">Milestones</span>
+                        <span class="badge bg-light text-dark">Analytics</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="module-card p-4 border rounded-3 h-100">
+                    <h5><i class="fas fa-code text-success me-2"></i>Developer Toolkit</h5>
+                    <p class="text-muted mb-3">Code reviews, bug tracking, project showcases, career advice</p>
+                    <div class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-light text-dark">Code Reviews</span>
+                        <span class="badge bg-light text-dark">Bug Tracking</span>
+                        <span class="badge bg-light text-dark">Showcases</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="bg-primary text-white py-5">
+    <div class="container text-center">
+        <h2 class="display-5 fw-bold mb-3">Ready to Transform Your Server?</h2>
+        <p class="lead mb-4">Join thousands of communities using UltraBot to create engaging Discord experiences</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="/invite" class="btn btn-light btn-lg" target="_blank">
+                <i class="fab fa-discord me-2"></i>Add to Discord
+            </a>
+            <a href="/features" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-list me-2"></i>View All Features
+            </a>
+        </div>
+    </div>
+</section>
+
+<script>
+// Load and display real statistics
+document.addEventListener('DOMContentLoaded', function() {
+    fetch('/api/stats')
+        .then(response => response.json())
+        .then(data => {
+            if (data.guild_count !== undefined) {
+                document.getElementById('serverCount').textContent = data.guild_count.toLocaleString();
+            }
+            if (data.user_count !== undefined) {
+                document.getElementById('userCount').textContent = data.user_count.toLocaleString();
+            }
+        })
+        .catch(error => {
+            console.log('Stats not available yet');
+        });
+});
+</script>

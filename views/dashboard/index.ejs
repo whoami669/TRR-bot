@@ -1,0 +1,299 @@
+<% layout('../layout') -%>
+
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h2"><i class="fas fa-chart-line me-2"></i>Dashboard</h1>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshStats()">
+                        <i class="fas fa-sync-alt me-1"></i>Refresh
+                    </button>
+                    <span class="badge bg-success fs-6">
+                        <i class="fas fa-circle me-1"></i>Bot Online
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-primary bg-opacity-10 rounded-3 p-3">
+                                <i class="fas fa-server fa-2x text-primary"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold text-muted small">SERVERS</div>
+                            <div class="fs-2 fw-bold"><%= stats.guild_count || 0 %></div>
+                            <div class="text-success small">
+                                <i class="fas fa-arrow-up me-1"></i>Active
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-success bg-opacity-10 rounded-3 p-3">
+                                <i class="fas fa-users fa-2x text-success"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold text-muted small">USERS</div>
+                            <div class="fs-2 fw-bold"><%= stats.user_count || 0 %></div>
+                            <div class="text-success small">
+                                <i class="fas fa-arrow-up me-1"></i>Growing
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-warning bg-opacity-10 rounded-3 p-3">
+                                <i class="fas fa-terminal fa-2x text-warning"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold text-muted small">COMMANDS</div>
+                            <div class="fs-2 fw-bold"><%= stats.command_count || 0 %></div>
+                            <div class="text-info small">
+                                <i class="fas fa-bolt me-1"></i>Executed
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="flex-shrink-0">
+                            <div class="bg-info bg-opacity-10 rounded-3 p-3">
+                                <i class="fas fa-clock fa-2x text-info"></i>
+                            </div>
+                        </div>
+                        <div class="flex-grow-1 ms-3">
+                            <div class="fw-bold text-muted small">UPTIME</div>
+                            <div class="fs-2 fw-bold" id="uptime-display">99.9%</div>
+                            <div class="text-success small">
+                                <i class="fas fa-check me-1"></i>Stable
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Server Activity Chart -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-chart-area me-2"></i>Server Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="activityChart" height="100"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="/dashboard/servers" class="btn btn-outline-primary">
+                            <i class="fas fa-server me-2"></i>Manage Servers
+                        </a>
+                        <a href="/dashboard/analytics" class="btn btn-outline-success">
+                            <i class="fas fa-chart-bar me-2"></i>View Analytics
+                        </a>
+                        <a href="/dashboard/settings" class="btn btn-outline-warning">
+                            <i class="fas fa-cog me-2"></i>Bot Settings
+                        </a>
+                        <a href="/invite" target="_blank" class="btn btn-outline-info">
+                            <i class="fab fa-discord me-2"></i>Invite Bot
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Status -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-heartbeat me-2"></i>System Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Discord Connection</span>
+                        <span class="badge bg-success">Connected</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>Database</span>
+                        <span class="badge bg-success">Operational</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>AI Systems</span>
+                        <span class="badge bg-warning">Limited</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Active Modules</span>
+                        <span class="badge bg-primary">28</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-transparent border-0 py-3">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-history me-2"></i>Recent Activity
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Time</th>
+                                    <th>Event</th>
+                                    <th>Server</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-muted">2 min ago</td>
+                                    <td>Community Revival System activated</td>
+                                    <td>Gaming Hub</td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">5 min ago</td>
+                                    <td>AI moderation alert triggered</td>
+                                    <td>Creative Studio</td>
+                                    <td><span class="badge bg-warning">Resolved</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">12 min ago</td>
+                                    <td>New server added</td>
+                                    <td>Developer Community</td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">18 min ago</td>
+                                    <td>Engagement wave completed</td>
+                                    <td>Content Creators</td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted">25 min ago</td>
+                                    <td>Auto-gaming questions posted</td>
+                                    <td>Esports Arena</td>
+                                    <td><span class="badge bg-success">Success</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Activity Chart
+const ctx = document.getElementById('activityChart').getContext('2d');
+const activityChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['6h ago', '5h ago', '4h ago', '3h ago', '2h ago', '1h ago', 'Now'],
+        datasets: [{
+            label: 'Server Activity',
+            data: [12, 19, 15, 25, 22, 30, 35],
+            borderColor: 'rgb(75, 192, 192)',
+            backgroundColor: 'rgba(75, 192, 192, 0.1)',
+            tension: 0.4,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        },
+        scales: {
+            y: {
+                beginAtZero: true,
+                grid: {
+                    display: false
+                }
+            },
+            x: {
+                grid: {
+                    display: false
+                }
+            }
+        }
+    }
+});
+
+// Refresh function
+function refreshStats() {
+    location.reload();
+}
+
+// Update uptime display
+function updateUptime() {
+    const uptime = <%= stats.uptime || 0 %>;
+    const hours = Math.floor(uptime / 3600);
+    const minutes = Math.floor((uptime % 3600) / 60);
+    
+    if (hours > 0) {
+        document.getElementById('uptime-display').textContent = hours + 'h ' + minutes + 'm';
+    } else {
+        document.getElementById('uptime-display').textContent = minutes + 'm';
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updateUptime();
+});
+</script>
