@@ -203,6 +203,7 @@ class UltraBot(commands.Bot):
             'cogs.engagement_system',
             'cogs.auto_gaming',
             'cogs.activity_boosters',
+            'cogs.viral_content',
         ]
         
         for cog in cogs:
