@@ -253,5 +253,323 @@ class SlashCommands(commands.Cog):
         )
         await interaction.response.send_message(embed=embed)
 
+    # MORE FUN COMMANDS
+    @app_commands.command(name="joke", description="Get a random joke")
+    async def joke(self, interaction: discord.Interaction):
+        jokes = [
+            "Why don't scientists trust atoms? Because they make up everything!",
+            "Why did the scarecrow win an award? He was outstanding in his field!",
+            "Why don't eggs tell jokes? They'd crack each other up!",
+            "What do you call a fake noodle? An impasta!",
+            "Why did the math book look so sad? Because it had too many problems!",
+            "What do you call a bear with no teeth? A gummy bear!",
+            "Why can't a bicycle stand up by itself? It's two tired!",
+            "What do you call a sleeping bull? A bulldozer!",
+            "Why did the coffee file a police report? It got mugged!",
+            "What's orange and sounds like a parrot? A carrot!"
+        ]
+        
+        joke = random.choice(jokes)
+        embed = discord.Embed(
+            title="😂 Random Joke",
+            description=joke,
+            color=discord.Color.yellow()
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="fact", description="Get a random fun fact")
+    async def fact(self, interaction: discord.Interaction):
+        facts = [
+            "Honey never spoils. Archaeologists have found edible honey in ancient Egyptian tombs!",
+            "A group of flamingos is called a 'flamboyance'.",
+            "Bananas are berries, but strawberries aren't!",
+            "The shortest war in history lasted only 38-45 minutes.",
+            "Octopuses have three hearts and blue blood.",
+            "A shrimp's heart is in its head.",
+            "It's impossible to hum while holding your nose closed.",
+            "The human brain uses about 20% of the body's total energy.",
+            "There are more possible chess games than atoms in the observable universe.",
+            "A day on Venus is longer than its year!"
+        ]
+        
+        fact = random.choice(facts)
+        embed = discord.Embed(
+            title="🤓 Fun Fact",
+            description=fact,
+            color=discord.Color.blue()
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="compliment", description="Give someone a compliment")
+    @app_commands.describe(member="The person to compliment (optional)")
+    async def compliment(self, interaction: discord.Interaction, member: discord.Member = None):
+        target = member or interaction.user
+        compliments = [
+            "You're absolutely amazing!", "You have great taste!", "You're incredibly thoughtful!",
+            "You light up the room!", "You're one of a kind!", "You're absolutely wonderful!",
+            "You have the best laugh!", "You're so creative!", "You're super smart!",
+            "You're really awesome!", "You make everyone around you happier!", "You're fantastic!"
+        ]
+        
+        compliment = random.choice(compliments)
+        embed = discord.Embed(
+            title="💝 Compliment",
+            description=f"{target.mention}, {compliment}",
+            color=discord.Color.pink()
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="meme", description="Get a random meme (requires internet)")
+    async def meme(self, interaction: discord.Interaction):
+        # Simple fallback memes
+        memes = [
+            "```\n    Wow\n        Such Discord\n             Very Bot\n                  Much Commands\n```",
+            "```\nMe: I'll just check Discord for 5 minutes\n*3 hours later*\nMe: What year is it?\n```",
+            "```\nDiscord notifications at 3 AM:\n'Someone is typing...'\nMe: 👁👄👁\n```"
+        ]
+        
+        meme = random.choice(memes)
+        embed = discord.Embed(
+            title="😂 Random Meme",
+            description=meme,
+            color=discord.Color.purple()
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="ship", description="Ship two users together")
+    @app_commands.describe(user1="First person", user2="Second person")
+    async def ship(self, interaction: discord.Interaction, user1: discord.Member, user2: discord.Member):
+        compatibility = random.randint(0, 100)
+        
+        if compatibility >= 90:
+            result = "💕 Perfect Match!"
+        elif compatibility >= 70:
+            result = "💖 Great Match!"
+        elif compatibility >= 50:
+            result = "💗 Good Match!"
+        elif compatibility >= 30:
+            result = "💙 Okay Match"
+        else:
+            result = "💔 Not Meant To Be"
+        
+        ship_name = user1.display_name[:3] + user2.display_name[-3:]
+        
+        embed = discord.Embed(
+            title="💘 Love Calculator",
+            description=f"**{user1.display_name}** + **{user2.display_name}** = **{ship_name}**\n\n**Compatibility:** {compatibility}%\n**Result:** {result}",
+            color=discord.Color.magenta()
+        )
+        await interaction.response.send_message(embed=embed)
+
+    # MORE UTILITY COMMANDS
+    @app_commands.command(name="avatar", description="Show someone's avatar")
+    @app_commands.describe(member="The user to show avatar for (optional)")
+    async def avatar(self, interaction: discord.Interaction, member: discord.Member = None):
+        target = member or interaction.user
+        
+        embed = discord.Embed(
+            title=f"🖼️ {target.display_name}'s Avatar",
+            color=target.color
+        )
+        embed.set_image(url=target.display_avatar.url)
+        embed.add_field(name="Direct Link", value=f"[Click here]({target.display_avatar.url})", inline=False)
+        
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="poll", description="Create a simple yes/no poll")
+    @app_commands.describe(question="The poll question")
+    async def poll(self, interaction: discord.Interaction, question: str):
+        embed = discord.Embed(
+            title="📊 Poll",
+            description=question,
+            color=discord.Color.blue()
+        )
+        embed.set_footer(text=f"Poll created by {interaction.user.display_name}")
+        
+        await interaction.response.send_message(embed=embed)
+        message = await interaction.original_response()
+        await message.add_reaction("✅")
+        await message.add_reaction("❌")
+
+    @app_commands.command(name="choose", description="Choose randomly from options")
+    @app_commands.describe(options="Choices separated by commas (e.g., pizza, burgers, tacos)")
+    async def choose(self, interaction: discord.Interaction, options: str):
+        choices = [choice.strip() for choice in options.split(",")]
+        if len(choices) < 2:
+            await interaction.response.send_message("Please provide at least 2 options separated by commas!", ephemeral=True)
+            return
+        
+        choice = random.choice(choices)
+        embed = discord.Embed(
+            title="🎯 Random Choice",
+            description=f"I choose: **{choice}**",
+            color=discord.Color.orange()
+        )
+        embed.add_field(name="Options", value=", ".join(choices), inline=False)
+        await interaction.response.send_message(embed=embed)
+
+    # MORE ECONOMY COMMANDS
+    @app_commands.command(name="work", description="Work to earn coins")
+    async def work(self, interaction: discord.Interaction):
+        user_id = interaction.user.id
+        guild_id = interaction.guild.id
+        
+        last_work = await self.bot.db.get_last_work(guild_id, user_id)
+        now = datetime.now(timezone.utc)
+        
+        if last_work and (now - last_work).total_seconds() < 3600:  # 1 hour cooldown
+            time_left = 3600 - (now - last_work).total_seconds()
+            minutes = int(time_left // 60)
+            await interaction.response.send_message(f"You need to wait {minutes} more minutes before working again!", ephemeral=True)
+            return
+        
+        jobs = [
+            ("delivery driver", 50, 150),
+            ("cashier", 40, 120),
+            ("programmer", 80, 200),
+            ("janitor", 30, 100),
+            ("teacher", 60, 180),
+            ("chef", 70, 190)
+        ]
+        
+        job, min_pay, max_pay = random.choice(jobs)
+        earnings = random.randint(min_pay, max_pay)
+        
+        await self.bot.db.add_balance(guild_id, user_id, earnings)
+        await self.bot.db.update_last_work(guild_id, user_id)
+        
+        embed = discord.Embed(
+            title="💼 Work Complete",
+            description=f"You worked as a **{job}** and earned **{earnings:,}** coins!",
+            color=discord.Color.green()
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="gamble", description="Gamble your coins")
+    @app_commands.describe(amount="Amount to gamble")
+    async def gamble(self, interaction: discord.Interaction, amount: int):
+        user_id = interaction.user.id
+        guild_id = interaction.guild.id
+        
+        if amount < 10:
+            await interaction.response.send_message("Minimum bet is 10 coins!", ephemeral=True)
+            return
+        
+        balance = await self.bot.db.get_balance(guild_id, user_id)
+        if balance < amount:
+            await interaction.response.send_message("You don't have enough coins!", ephemeral=True)
+            return
+        
+        win_chance = 45  # 45% chance to win
+        if random.randint(1, 100) <= win_chance:
+            winnings = int(amount * 1.8)
+            await self.bot.db.add_balance(guild_id, user_id, winnings - amount)
+            
+            embed = discord.Embed(
+                title="🎰 Gambling Result",
+                description=f"🎉 **You won!**\nYou bet {amount:,} coins and won {winnings:,} coins!\nProfit: {winnings - amount:,} coins",
+                color=discord.Color.green()
+            )
+        else:
+            await self.bot.db.remove_balance(guild_id, user_id, amount)
+            
+            embed = discord.Embed(
+                title="🎰 Gambling Result",
+                description=f"💸 **You lost!**\nYou lost {amount:,} coins. Better luck next time!",
+                color=discord.Color.red()
+            )
+        
+        new_balance = await self.bot.db.get_balance(guild_id, user_id)
+        embed.add_field(name="New Balance", value=f"{new_balance:,} coins", inline=False)
+        await interaction.response.send_message(embed=embed)
+
+    # LEVELING COMMANDS
+    @app_commands.command(name="rank", description="Check your or someone's rank")
+    @app_commands.describe(member="The member to check rank for (optional)")
+    async def rank(self, interaction: discord.Interaction, member: discord.Member = None):
+        target = member or interaction.user
+        stats = await self.bot.db.get_user_stats(interaction.guild.id, target.id)
+        
+        if not stats:
+            await interaction.response.send_message("No rank data found for this user!", ephemeral=True)
+            return
+        
+        xp, level = stats
+        rank = await self.bot.db.get_user_rank(interaction.guild.id, target.id)
+        
+        embed = discord.Embed(
+            title=f"📊 {target.display_name}'s Rank",
+            color=target.color
+        )
+        embed.set_thumbnail(url=target.display_avatar.url)
+        embed.add_field(name="Level", value=f"**{level}**", inline=True)
+        embed.add_field(name="XP", value=f"**{xp:,}**", inline=True)
+        embed.add_field(name="Rank", value=f"**#{rank}**", inline=True)
+        
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="leaderboard", description="Show the server leaderboard")
+    async def leaderboard(self, interaction: discord.Interaction):
+        top_users = await self.bot.db.get_top_users(interaction.guild.id, 10)
+        
+        if not top_users:
+            await interaction.response.send_message("No leaderboard data available!", ephemeral=True)
+            return
+        
+        embed = discord.Embed(
+            title="🏆 Server Leaderboard",
+            color=discord.Color.gold()
+        )
+        
+        for i, (user_id, xp, level) in enumerate(top_users):
+            user = interaction.guild.get_member(user_id)
+            if user:
+                rank_emoji = ["🥇", "🥈", "🥉"][i] if i < 3 else f"{i+1}."
+                embed.add_field(
+                    name=f"{rank_emoji} {user.display_name}",
+                    value=f"Level {level} • {xp:,} XP",
+                    inline=False
+                )
+        
+        await interaction.response.send_message(embed=embed)
+
+    # MORE MODERATION COMMANDS
+    @app_commands.command(name="timeout", description="Timeout a member")
+    @app_commands.describe(member="The member to timeout", duration="Duration in minutes", reason="Reason for timeout")
+    @app_commands.default_permissions(moderate_members=True)
+    async def timeout(self, interaction: discord.Interaction, member: discord.Member, duration: int, reason: str = "No reason provided"):
+        if duration < 1 or duration > 10080:  # Max 7 days
+            await interaction.response.send_message("Duration must be between 1 minute and 7 days (10080 minutes)!", ephemeral=True)
+            return
+        
+        try:
+            await member.timeout(discord.utils.utcnow() + discord.timedelta(minutes=duration), reason=reason)
+            embed = discord.Embed(
+                title="⏱️ Member Timed Out",
+                description=f"**{member}** has been timed out for {duration} minutes.\n**Reason:** {reason}",
+                color=discord.Color.orange()
+            )
+            await interaction.response.send_message(embed=embed)
+        except Exception as e:
+            await interaction.response.send_message(f"Failed to timeout member: {e}", ephemeral=True)
+
+    @app_commands.command(name="warn", description="Warn a member")
+    @app_commands.describe(member="The member to warn", reason="Reason for the warning")
+    @app_commands.default_permissions(moderate_members=True)
+    async def warn(self, interaction: discord.Interaction, member: discord.Member, reason: str = "No reason provided"):
+        await self.bot.db.add_warning(interaction.guild.id, member.id, interaction.user.id, reason)
+        
+        embed = discord.Embed(
+            title="⚠️ Warning Issued",
+            description=f"**{member}** has been warned.\n**Reason:** {reason}",
+            color=discord.Color.yellow()
+        )
+        await interaction.response.send_message(embed=embed)
+        
+        try:
+            await member.send(f"You have been warned in **{interaction.guild.name}** for: {reason}")
+        except:
+            pass
+
 async def setup(bot):
     await bot.add_cog(SlashCommands(bot))
