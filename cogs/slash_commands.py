@@ -571,5 +571,164 @@ class SlashCommands(commands.Cog):
         except:
             pass
 
+    # GAMING COMMANDS
+    @app_commands.command(name="trivia", description="Get a gaming trivia question")
+    async def gaming_trivia(self, interaction: discord.Interaction):
+        trivia_questions = [
+            {
+                "question": "What year was the original Super Mario Bros. released?",
+                "answer": "1985",
+                "options": ["1983", "1985", "1987", "1989"]
+            },
+            {
+                "question": "Which game popularized the battle royale genre?",
+                "answer": "PlayerUnknown's Battlegrounds (PUBG)",
+                "options": ["Fortnite", "Apex Legends", "PUBG", "H1Z1"]
+            },
+            {
+                "question": "What is the best-selling video game of all time?",
+                "answer": "Minecraft",
+                "options": ["Tetris", "Minecraft", "GTA V", "Fortnite"]
+            },
+            {
+                "question": "Which company developed the Witcher series?",
+                "answer": "CD Projekt Red",
+                "options": ["Bethesda", "CD Projekt Red", "BioWare", "Ubisoft"]
+            },
+            {
+                "question": "In League of Legends, what does 'ADC' stand for?",
+                "answer": "Attack Damage Carry",
+                "options": ["Attack Damage Carry", "Auto Defense Core", "Advanced Damage Control", "Area Damage Command"]
+            },
+            {
+                "question": "What is the maximum level in Minecraft without commands?",
+                "answer": "There is no maximum level",
+                "options": ["50", "100", "999", "No maximum"]
+            },
+            {
+                "question": "Which game features the character Master Chief?",
+                "answer": "Halo",
+                "options": ["Call of Duty", "Halo", "Destiny", "Titanfall"]
+            },
+            {
+                "question": "What does 'FPS' stand for in gaming?",
+                "answer": "First Person Shooter (or Frames Per Second)",
+                "options": ["Fast Player Sync", "First Person Shooter", "Full Power System", "Final Player Score"]
+            }
+        ]
+        
+        question_data = random.choice(trivia_questions)
+        embed = discord.Embed(
+            title="🎮 Gaming Trivia",
+            description=f"**Question:** {question_data['question']}\n\n**Options:**\n" + 
+                       "\n".join([f"• {option}" for option in question_data['options']]),
+            color=discord.Color.purple()
+        )
+        embed.add_field(name="💡 Answer", value=f"||{question_data['answer']}||", inline=False)
+        embed.set_footer(text="Click the spoiler to reveal the answer!")
+        
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="gamesuggestion", description="Get a random game suggestion")
+    async def game_suggestion(self, interaction: discord.Interaction):
+        games = [
+            {"name": "The Witcher 3: Wild Hunt", "genre": "RPG", "platform": "PC, Console"},
+            {"name": "Among Us", "genre": "Social Deduction", "platform": "PC, Mobile"},
+            {"name": "Minecraft", "genre": "Sandbox", "platform": "All Platforms"},
+            {"name": "Valorant", "genre": "FPS", "platform": "PC"},
+            {"name": "Fall Guys", "genre": "Party", "platform": "PC, Console"},
+            {"name": "Rocket League", "genre": "Sports", "platform": "PC, Console"},
+            {"name": "Apex Legends", "genre": "Battle Royale", "platform": "PC, Console"},
+            {"name": "Genshin Impact", "genre": "Action RPG", "platform": "PC, Mobile, Console"},
+            {"name": "Stardew Valley", "genre": "Simulation", "platform": "All Platforms"},
+            {"name": "Hollow Knight", "genre": "Metroidvania", "platform": "PC, Console"}
+        ]
+        
+        game = random.choice(games)
+        embed = discord.Embed(
+            title="🎲 Game Suggestion",
+            description=f"**{game['name']}**",
+            color=discord.Color.blue()
+        )
+        embed.add_field(name="Genre", value=game['genre'], inline=True)
+        embed.add_field(name="Platform", value=game['platform'], inline=True)
+        
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="setuproles", description="Setup new custom roles for the server")
+    @app_commands.default_permissions(administrator=True)
+    async def setup_roles(self, interaction: discord.Interaction):
+        await interaction.response.defer()
+        
+        # Define new role structure
+        new_roles = [
+            {"name": "🔥 A-Team", "color": 0xff0000, "permissions": discord.Permissions.all()},  # Admin
+            {"name": "⭐ Founder", "color": 0xffd700, "permissions": discord.Permissions(administrator=True)},  # Co-owner
+            {"name": "🎯 President", "color": 0x00ff00, "permissions": discord.Permissions(kick_members=True, ban_members=True, manage_messages=True, manage_channels=True)},  # Mod
+            {"name": "🛡️ Guardian", "color": 0x0099ff, "permissions": discord.Permissions(kick_members=True, manage_messages=True)},  # Helper
+            {"name": "💎 Elite", "color": 0x9932cc, "permissions": discord.Permissions.none()},  # VIP
+            {"name": "🎮 Gamer", "color": 0xff6600, "permissions": discord.Permissions.none()},  # Regular
+            {"name": "🌟 Member", "color": 0x808080, "permissions": discord.Permissions.none()},  # Basic
+            {"name": "🤖 Bot", "color": 0x36393f, "permissions": discord.Permissions.none()},  # Bot role
+        ]
+        
+        guild = interaction.guild
+        created_roles = []
+        
+        try:
+            # Remove old default roles (except @everyone and existing bots)
+            roles_to_remove = []
+            for role in guild.roles:
+                if role.name.lower() in ['member', 'vip', 'moderator', 'admin'] and not role.managed:
+                    roles_to_remove.append(role)
+            
+            for role in roles_to_remove:
+                try:
+                    await role.delete()
+                except:
+                    pass
+            
+            # Create new roles
+            for role_data in new_roles:
+                try:
+                    new_role = await guild.create_role(
+                        name=role_data["name"],
+                        color=discord.Color(role_data["color"]),
+                        permissions=role_data["permissions"],
+                        mentionable=True
+                    )
+                    created_roles.append(new_role.name)
+                except Exception as e:
+                    print(f"Failed to create role {role_data['name']}: {e}")
+            
+            embed = discord.Embed(
+                title="🎭 Roles Setup Complete",
+                description="Successfully created new custom roles!",
+                color=discord.Color.green()
+            )
+            
+            if created_roles:
+                embed.add_field(
+                    name="Created Roles",
+                    value="\n".join(created_roles),
+                    inline=False
+                )
+            
+            embed.add_field(
+                name="Role Hierarchy",
+                value="🔥 A-Team (Admin)\n⭐ Founder (Co-owner)\n🎯 President (Mod)\n🛡️ Guardian (Helper)\n💎 Elite (VIP)\n🎮 Gamer (Regular)\n🌟 Member (Basic)",
+                inline=False
+            )
+            
+            await interaction.followup.send(embed=embed)
+            
+        except Exception as e:
+            embed = discord.Embed(
+                title="❌ Setup Failed",
+                description=f"Failed to setup roles: {str(e)}",
+                color=discord.Color.red()
+            )
+            await interaction.followup.send(embed=embed, ephemeral=True)
+
 async def setup(bot):
     await bot.add_cog(SlashCommands(bot))

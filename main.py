@@ -36,7 +36,8 @@ class ComprehensiveBot(commands.Bot):
             'cogs.utility',
             'cogs.fun',
             'cogs.tickets',
-            'cogs.slash_commands'
+            'cogs.slash_commands',
+            'cogs.auto_gaming'
         ]
         
         for cog in cogs:
