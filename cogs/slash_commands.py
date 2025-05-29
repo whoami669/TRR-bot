@@ -676,14 +676,16 @@ class SlashCommands(commands.Cog):
         created_roles = []
         
         try:
-            # Remove old default roles (except @everyone and existing bots)
+            # Remove ALL existing roles except @everyone and managed roles (bots)
             roles_to_remove = []
             for role in guild.roles:
-                if role.name.lower() in ['member', 'vip', 'moderator', 'admin'] and not role.managed:
+                if role.name != "@everyone" and not role.managed and role != guild.owner.top_role:
                     roles_to_remove.append(role)
             
+            removed_roles = []
             for role in roles_to_remove:
                 try:
+                    removed_roles.append(role.name)
                     await role.delete()
                 except:
                     pass
@@ -707,9 +709,16 @@ class SlashCommands(commands.Cog):
                 color=discord.Color.green()
             )
             
+            if removed_roles:
+                embed.add_field(
+                    name="Removed Old Roles",
+                    value="\n".join(removed_roles) if removed_roles else "None",
+                    inline=False
+                )
+            
             if created_roles:
                 embed.add_field(
-                    name="Created Roles",
+                    name="Created New Roles",
                     value="\n".join(created_roles),
                     inline=False
                 )
