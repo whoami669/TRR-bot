@@ -35,7 +35,8 @@ class ComprehensiveBot(commands.Bot):
             'cogs.leveling',
             'cogs.utility',
             'cogs.fun',
-            'cogs.tickets'
+            'cogs.tickets',
+            'cogs.slash_commands'
         ]
         
         for cog in cogs:
@@ -44,6 +45,13 @@ class ComprehensiveBot(commands.Bot):
                 print(f"✅ Loaded {cog}")
             except Exception as e:
                 print(f"❌ Failed to load {cog}: {e}")
+        
+        # Sync slash commands
+        try:
+            synced = await self.tree.sync()
+            print(f"✅ Synced {len(synced)} slash commands")
+        except Exception as e:
+            print(f"❌ Failed to sync commands: {e}")
         
         # Initialize database
         await self.db.init_db()
