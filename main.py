@@ -116,6 +116,48 @@ async def init_database():
             )
         ''')
         
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS scheduled_messages (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL,
+                message TEXT NOT NULL,
+                scheduled_time TEXT NOT NULL,
+                created_by INTEGER NOT NULL,
+                sent BOOLEAN DEFAULT FALSE
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS auto_roles (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER NOT NULL,
+                trigger_type TEXT NOT NULL,
+                trigger_value TEXT NOT NULL,
+                role_id INTEGER NOT NULL,
+                condition_value INTEGER DEFAULT 1
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS auto_reactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER NOT NULL,
+                trigger_type TEXT NOT NULL,
+                trigger_value TEXT NOT NULL,
+                emojis TEXT NOT NULL
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS welcome_config (
+                guild_id INTEGER PRIMARY KEY,
+                channel_id INTEGER,
+                message TEXT,
+                auto_role_id INTEGER
+            )
+        ''')
+        
         await db.commit()
 
 class UltraBot(commands.Bot):
@@ -156,6 +198,11 @@ class UltraBot(commands.Bot):
             'cogs.customization_hub',
             'cogs.security_suite',
             'cogs.productivity_tools',
+            'cogs.server_takeover',
+            'cogs.community_revival',
+            'cogs.engagement_system',
+            'cogs.auto_gaming',
+            'cogs.activity_boosters',
         ]
         
         for cog in cogs:

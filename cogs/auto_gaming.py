@@ -1,8 +1,10 @@
 import discord
 from discord.ext import commands, tasks
-import random
+from discord import app_commands
+import aiosqlite
 import asyncio
-from datetime import datetime, timezone
+import random
+from datetime import datetime, timezone, timedelta
 
 class AutoGaming(commands.Cog):
     def __init__(self, bot):
@@ -12,168 +14,123 @@ class AutoGaming(commands.Cog):
     def cog_unload(self):
         self.gaming_questions_loop.cancel()
 
-    @tasks.loop(hours=2)  # Post gaming questions every 2 hours
+    @tasks.loop(hours=2)
     async def gaming_questions_loop(self):
+        """Automatically post gaming questions to boost engagement"""
         for guild in self.bot.guilds:
-            # Find gaming channels
-            gaming_channels = []
-            for channel in guild.text_channels:
-                if any(keyword in channel.name.lower() for keyword in ['gaming', 'game', 'esports', 'valorant', 'minecraft', 'league', 'fortnite']):
-                    gaming_channels.append(channel)
+            gaming_channel = discord.utils.get(guild.text_channels, name="gaming-talk")
+            general_channel = discord.utils.get(guild.text_channels, name="general-chat")
             
-            # Post in random gaming channel
-            if gaming_channels:
-                channel = random.choice(gaming_channels)
-                await self.post_gaming_question(channel)
+            target_channel = gaming_channel or general_channel
+            
+            if target_channel and random.random() < 0.7:  # 70% chance every 2 hours
+                await self.post_gaming_question(target_channel)
 
     @gaming_questions_loop.before_loop
     async def before_gaming_loop(self):
         await self.bot.wait_until_ready()
 
     async def post_gaming_question(self, channel):
+        """Post a random gaming question"""
         gaming_questions = [
-            {
-                "type": "trivia",
-                "question": "What was the first commercially successful video game?",
-                "answer": "Pong (1972)",
-                "options": ["Pong", "Pac-Man", "Space Invaders", "Tetris"]
-            },
-            {
-                "type": "would_you_rather",
-                "question": "Would you rather have unlimited gaming time but only play one game forever, or play any game but only 1 hour per day?"
-            },
-            {
-                "type": "discussion",
-                "question": "What's your most memorable gaming moment?"
-            },
-            {
-                "type": "trivia",
-                "question": "Which game holds the record for fastest speedrun completion?",
-                "answer": "Various games have different categories",
-                "options": ["Mario Bros", "Sonic", "Doom", "It varies by game"]
-            },
-            {
-                "type": "poll",
-                "question": "Best gaming platform?",
-                "options": ["PC", "PlayStation", "Xbox", "Nintendo", "Mobile"]
-            },
-            {
-                "type": "discussion",
-                "question": "What game are you currently obsessed with and why?"
-            },
-            {
-                "type": "would_you_rather",
-                "question": "Would you rather be the best player at a game nobody plays, or average at the most popular game?"
-            },
-            {
-                "type": "trivia",
-                "question": "What does 'RNG' stand for in gaming?",
-                "answer": "Random Number Generator",
-                "options": ["Random Number Generator", "Rapid Network Gaming", "Real Number Graphics", "Random Name Generator"]
-            },
-            {
-                "type": "discussion",
-                "question": "What's a game you think is underrated and deserves more attention?"
-            },
-            {
-                "type": "challenge",
-                "question": "Gaming Challenge: Share a screenshot of your current game setup or favorite gaming achievement!"
-            }
+            "What's the most challenging game you've ever completed? Share your victory story! 🏆",
+            "If you could live in any video game world, which would you choose and why? 🌍",
+            "What's your favorite gaming memory from childhood? Let's get nostalgic! 🎮",
+            "Which game soundtrack gives you the most goosebumps? Drop a link! 🎵",
+            "What's the longest gaming session you've ever had? How many hours? ⏰",
+            "Which game mechanic do you think is absolutely genius? 🧠",
+            "What's your go-to game when you want to relax and unwind? 😌",
+            "If you could bring back one discontinued game series, what would it be? 📺",
+            "What's the most beautiful game environment you've ever seen? 🌅",
+            "Which gaming character would make the best friend in real life? 👥",
+            "What's your biggest gaming achievement that you're proud of? 🥇",
+            "Which game completely changed your perspective on gaming? 🔄",
+            "What's the scariest moment you've experienced in a horror game? 👻",
+            "If you could have any superpower from a video game, what would it be? ⚡",
+            "What's the most addictive mobile game you've ever played? 📱",
+            "Which retro game holds up perfectly even today? 🕹️",
+            "What's your favorite co-op gaming experience with friends? 🤝",
+            "Which game has the best character customization system? ✨",
+            "What's the most emotional moment you've experienced in gaming? 😭",
+            "If you could be a game developer for one day, what would you create? 💡"
         ]
-
-        question_data = random.choice(gaming_questions)
         
-        if question_data["type"] == "trivia":
-            embed = discord.Embed(
-                title="🎮 Gaming Trivia Time!",
-                description=f"**{question_data['question']}**\n\n" + 
-                           "\n".join([f"**{chr(65+i)}.** {option}" for i, option in enumerate(question_data['options'])]),
-                color=discord.Color.purple()
-            )
-            embed.add_field(name="💡 Answer", value=f"||{question_data['answer']}||", inline=False)
-            embed.set_footer(text="React with 🎯 if you got it right!")
-            
-        elif question_data["type"] == "would_you_rather":
-            embed = discord.Embed(
-                title="🤔 Gaming Would You Rather",
-                description=question_data["question"],
-                color=discord.Color.orange()
-            )
-            embed.set_footer(text="Let us know your choice in the comments!")
-            
-        elif question_data["type"] == "discussion":
-            embed = discord.Embed(
-                title="💬 Gaming Discussion",
-                description=question_data["question"],
-                color=discord.Color.blue()
-            )
-            embed.set_footer(text="Share your thoughts below!")
-            
-        elif question_data["type"] == "poll":
-            embed = discord.Embed(
-                title="📊 Gaming Poll",
-                description=question_data["question"],
-                color=discord.Color.green()
-            )
-            # Will add reactions after sending
-            
-        elif question_data["type"] == "challenge":
-            embed = discord.Embed(
-                title="🏆 Gaming Challenge",
-                description=question_data["question"],
-                color=discord.Color.gold()
-            )
-            embed.set_footer(text="Show off your gaming setup!")
-
+        question = random.choice(gaming_questions)
+        
+        embed = discord.Embed(
+            title="🎮 Gaming Discussion",
+            description=question,
+            color=random.choice([0x00ff00, 0xff6b6b, 0x4ecdc4, 0x45b7d1, 0xf39c12])
+        )
+        embed.set_footer(text="Join the conversation and share your thoughts!")
+        
         try:
             message = await channel.send(embed=embed)
-            
-            # Add appropriate reactions
-            if question_data["type"] == "trivia":
-                await message.add_reaction("🎯")
-            elif question_data["type"] == "would_you_rather":
-                await message.add_reaction("1️⃣")
-                await message.add_reaction("2️⃣")
-            elif question_data["type"] == "poll":
-                reactions = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣"]
-                for i, option in enumerate(question_data.get("options", [])):
-                    if i < len(reactions):
-                        await message.add_reaction(reactions[i])
-            elif question_data["type"] in ["discussion", "challenge"]:
-                await message.add_reaction("💬")
-                await message.add_reaction("👍")
-                
+            await message.add_reaction("🎮")
+            await message.add_reaction("💬")
+            await message.add_reaction("🔥")
         except Exception as e:
-            print(f"Failed to post gaming question in {channel.name}: {e}")
+            print(f"Error posting gaming question: {e}")
 
     @commands.Cog.listener()
     async def on_message(self, message):
-        if message.author.bot:
+        """React to gaming-related messages automatically"""
+        if message.author.bot or not message.guild:
             return
-            
-        # Respond to gaming-related keywords in gaming channels
-        if any(keyword in message.channel.name.lower() for keyword in ['gaming', 'game']):
-            content = message.content.lower()
-            
-            # Gaming tips for common questions
-            tips = {
-                'lag': "Try checking your internet connection, closing background apps, or lowering graphics settings!",
-                'fps': "For better FPS: Lower graphics settings, update drivers, close unnecessary programs, or consider hardware upgrades.",
-                'build': "For PC builds, balance your CPU and GPU, don't forget enough RAM, and ensure good cooling!",
-                'setup': "Good gaming setup tips: Comfortable chair, proper lighting, organized desk, and quality peripherals.",
-                'headset': "Popular gaming headsets: SteelSeries, HyperX, Logitech G, Razer, or Audio-Technica for quality audio."
-            }
-            
-            for keyword, tip in tips.items():
-                if keyword in content and '?' in content:
-                    embed = discord.Embed(
-                        title="🎮 Gaming Tip",
-                        description=tip,
-                        color=discord.Color.blue()
-                    )
-                    embed.set_footer(text="Hope this helps!")
-                    await message.channel.send(embed=embed)
-                    break
+        
+        # Gaming keywords for auto-engagement
+        gaming_triggers = {
+            'achievement': ['🏆', '👏', '🎉'],
+            'victory': ['🏆', '🎊', '💯'],
+            'completed': ['✅', '🎯', '👍'],
+            'finished': ['✅', '🎯', '👍'],
+            'won': ['🏆', '🎉', '💪'],
+            'beat': ['💪', '🔥', '👑'],
+            'platinum': ['💎', '🏆', '⭐'],
+            'legendary': ['👑', '⭐', '🔥'],
+            'epic': ['🔥', '💯', '⚡'],
+            'clutch': ['🔥', '💯', '🎯'],
+            'headshot': ['🎯', '💥', '🔥'],
+            'speedrun': ['⚡', '🏃', '⏱️'],
+            'world record': ['🌍', '🏆', '⭐'],
+            'first try': ['🍀', '🎯', '👍'],
+            'no death': ['💪', '🛡️', '👑'],
+            'perfect': ['💯', '⭐', '✨'],
+            'flawless': ['💎', '✨', '👑']
+        }
+        
+        message_lower = message.content.lower()
+        
+        # Check for gaming achievements
+        for trigger, reactions in gaming_triggers.items():
+            if trigger in message_lower:
+                if random.random() < 0.8:  # 80% chance
+                    try:
+                        await message.add_reaction(random.choice(reactions))
+                        
+                        # Chance for congratulatory response
+                        if random.random() < 0.3:  # 30% chance
+                            congrats_messages = [
+                                "That's incredible! Well done! 🎉",
+                                "Amazing achievement! You're on fire! 🔥",
+                                "Absolutely legendary! Keep it up! 👑",
+                                "That's what I'm talking about! 💪",
+                                "Epic gaming moment right there! ⚡"
+                            ]
+                            await asyncio.sleep(1)
+                            await message.reply(random.choice(congrats_messages), mention_author=False)
+                    except:
+                        pass
+                break
+        
+        # General gaming enthusiasm
+        gaming_words = ['gaming', 'playing', 'stream', 'twitch', 'youtube gaming', 'esports']
+        if any(word in message_lower for word in gaming_words):
+            if random.random() < 0.2:  # 20% chance
+                try:
+                    await message.add_reaction('🎮')
+                except:
+                    pass
 
 async def setup(bot):
     await bot.add_cog(AutoGaming(bot))
