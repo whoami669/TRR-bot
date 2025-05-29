@@ -217,6 +217,9 @@ class UltraBot(commands.Bot):
             'cogs.streamer_tools',
             'cogs.esports_management',
             'cogs.developer_toolkit',
+            'cogs.ai_intelligence',
+            'cogs.advanced_moderation',
+            'cogs.creative_studio',
         ]
         
         for cog in cogs:
