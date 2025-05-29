@@ -679,7 +679,7 @@ class SlashCommands(commands.Cog):
             # Remove ALL existing roles except @everyone and managed roles (bots)
             roles_to_remove = []
             for role in guild.roles:
-                if role.name != "@everyone" and not role.managed and role != guild.owner.top_role:
+                if role.name != "@everyone" and not role.managed:
                     roles_to_remove.append(role)
             
             removed_roles = []
