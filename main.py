@@ -212,6 +212,11 @@ class UltraBot(commands.Bot):
             'cogs.chaos_engine',
             'cogs.energy_multiplier',
             'cogs.engagement_overdrive',
+            'cogs.gamer_suite',
+            'cogs.content_creator_suite',
+            'cogs.streamer_tools',
+            'cogs.esports_management',
+            'cogs.developer_toolkit',
         ]
         
         for cog in cogs:
