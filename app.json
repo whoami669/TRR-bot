@@ -1,0 +1,37 @@
+{
+  "name": "Ultra Discord Bot",
+  "description": "Comprehensive Discord server management bot with analytics and community features",
+  "repository": "https://github.com/yourusername/ultra-discord-bot",
+  "keywords": ["discord", "bot", "analytics", "moderation", "community"],
+  "env": {
+    "DISCORD_TOKEN": {
+      "description": "Your Discord bot token from Discord Developer Portal",
+      "required": true
+    },
+    "DATABASE_URL": {
+      "description": "PostgreSQL database URL (Heroku will provide this automatically)",
+      "required": false
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "free"
+    },
+    "worker": {
+      "quantity": 1,
+      "size": "free"
+    }
+  },
+  "addons": [
+    "heroku-postgresql:hobby-dev"
+  ],
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    },
+    {
+      "url": "heroku/nodejs"
+    }
+  ]
+}

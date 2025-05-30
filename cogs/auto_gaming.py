@@ -9,7 +9,8 @@ from datetime import datetime, timezone, timedelta
 class AutoGaming(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.gaming_questions_loop.start()
+        # Disabled automated messaging per user request
+        # self.gaming_questions_loop.start()
 
     def cog_unload(self):
         self.gaming_questions_loop.cancel()
