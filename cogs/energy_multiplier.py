@@ -8,10 +8,8 @@ from datetime import datetime, timezone, timedelta
 class EnergyMultiplier(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.energy_amplification.start()
-        self.power_surges.start()
-        self.enthusiasm_injection.start()
-        self.collective_energy.start()
+        # All automated messaging completely disabled
+        pass
 
     @tasks.loop(minutes=9)
     async def energy_amplification(self):

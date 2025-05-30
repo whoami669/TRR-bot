@@ -8,11 +8,8 @@ from datetime import datetime, timezone, timedelta
 class EngagementOverdrive(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Disabled all automated messaging per user request
-        # self.hyperdrive_mode.start()
-        # self.turbocharged_events.start()
-        # self.maximum_engagement.start()
-        # self.nuclear_participation.start()
+        # All automated messaging completely disabled
+        pass
 
     @tasks.loop(hours=24)
     async def hyperdrive_mode(self):

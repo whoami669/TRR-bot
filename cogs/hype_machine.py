@@ -8,10 +8,8 @@ from datetime import datetime, timezone, timedelta
 class HypeMachine(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        # Disabled automated messaging per user request
-        # self.hype_bursts.start()
-        # self.energy_waves.start()
-        # self.momentum_builder.start()
+        # All automated messaging completely disabled
+        pass
 
     @tasks.loop(hours=6)
     async def hype_bursts(self):

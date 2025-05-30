@@ -362,6 +362,11 @@ class ModerationAdvanced(commands.Cog):
             return True
 
         try:
+            # Check if channel supports purging
+            if not isinstance(interaction.channel, discord.TextChannel):
+                await interaction.response.send_message("❌ Cannot purge messages in this channel type!", ephemeral=True)
+                return
+                
             before = None
             if before_message:
                 try:
@@ -379,10 +384,18 @@ class ModerationAdvanced(commands.Cog):
             )
             embed.set_footer(text=f"Purged by {interaction.user}")
             
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            try:
+                await interaction.response.send_message(embed=embed, ephemeral=True)
+            except discord.errors.NotFound:
+                # Interaction already expired, send follow-up
+                await interaction.followup.send(embed=embed, ephemeral=True)
 
         except Exception as e:
-            await interaction.response.send_message(f"❌ Failed to purge messages: {str(e)}", ephemeral=True)
+            try:
+                await interaction.response.send_message(f"❌ Failed to purge messages: {str(e)}", ephemeral=True)
+            except discord.errors.NotFound:
+                # Interaction already expired, send follow-up  
+                await interaction.followup.send(f"❌ Failed to purge messages: {str(e)}", ephemeral=True)
 
     @commands.Cog.listener()
     async def on_message(self, message):
