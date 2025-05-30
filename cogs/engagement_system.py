@@ -9,7 +9,8 @@ from datetime import datetime, timezone, timedelta
 class EngagementSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.level_up_messages.start()
+        # Disabled automated messaging per user request
+        # self.level_up_messages.start()
         self.voice_activity_tracker.start()
         self.member_milestones.start()
 

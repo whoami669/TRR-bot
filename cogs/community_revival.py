@@ -9,7 +9,8 @@ from datetime import datetime, timezone, timedelta
 class CommunityRevival(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.conversation_starters.start()
+        # Disabled automated messaging per user request
+        # self.conversation_starters.start()
         self.activity_rewards.start()
         self.community_challenges.start()
 

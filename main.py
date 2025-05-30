@@ -78,7 +78,72 @@ async def init_database():
                 message_length INTEGER,
                 timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 sentiment_score REAL,
-                toxicity_score REAL
+                toxicity_score REAL,
+                has_mentions BOOLEAN DEFAULT FALSE,
+                has_attachments BOOLEAN DEFAULT FALSE,
+                reaction_count INTEGER DEFAULT 0,
+                is_thread BOOLEAN DEFAULT FALSE
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS voice_analytics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER,
+                channel_id INTEGER,
+                user_id INTEGER,
+                join_time TIMESTAMP,
+                leave_time TIMESTAMP,
+                duration_seconds INTEGER,
+                was_muted BOOLEAN DEFAULT FALSE,
+                was_deafened BOOLEAN DEFAULT FALSE
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS server_metrics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER,
+                date DATE,
+                total_messages INTEGER DEFAULT 0,
+                active_users INTEGER DEFAULT 0,
+                new_members INTEGER DEFAULT 0,
+                left_members INTEGER DEFAULT 0,
+                voice_minutes INTEGER DEFAULT 0,
+                channels_created INTEGER DEFAULT 0,
+                channels_deleted INTEGER DEFAULT 0,
+                avg_message_length REAL DEFAULT 0
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS user_activity_summary (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER,
+                user_id INTEGER,
+                date DATE,
+                messages_sent INTEGER DEFAULT 0,
+                voice_minutes INTEGER DEFAULT 0,
+                reactions_given INTEGER DEFAULT 0,
+                reactions_received INTEGER DEFAULT 0,
+                commands_used INTEGER DEFAULT 0,
+                first_activity TIMESTAMP,
+                last_activity TIMESTAMP,
+                UNIQUE(guild_id, user_id, date)
+            )
+        ''')
+        
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS channel_analytics (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER,
+                channel_id INTEGER,
+                date DATE,
+                message_count INTEGER DEFAULT 0,
+                unique_users INTEGER DEFAULT 0,
+                avg_message_length REAL DEFAULT 0,
+                peak_hour INTEGER DEFAULT 0,
+                UNIQUE(guild_id, channel_id, date)
             )
         ''')
         
@@ -212,11 +277,11 @@ class UltraBot(commands.Bot):
         # Load essential cogs (staying within Discord's 100 command limit)
         cogs = [
             'cogs.spam_control',
+            'cogs.advanced_analytics',
             'cogs.moderation_advanced',
             'cogs.entertainment_suite',
             'cogs.utility_toolkit',
             'cogs.social_features',
-            'cogs.analytics_monitoring',
             'cogs.automation_system',
             'cogs.economy_advanced',
             'cogs.music_premium',
@@ -238,7 +303,6 @@ class UltraBot(commands.Bot):
             'cogs.energy_multiplier',
             'cogs.engagement_overdrive',
             'cogs.gamer_suite',
-            'cogs.content_creator_suite',
         ]
         
         for cog in cogs:

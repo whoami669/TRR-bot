@@ -8,7 +8,8 @@ from datetime import datetime, timezone, timedelta
 class ActivityBoosters(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.hourly_boosters.start()
+        # Disabled automated messaging per user request
+        # self.hourly_boosters.start()
         self.voice_channel_monitor.start()
         self.trending_topics.start()
 

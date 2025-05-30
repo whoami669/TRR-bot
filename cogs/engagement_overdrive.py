@@ -13,7 +13,7 @@ class EngagementOverdrive(commands.Cog):
         self.maximum_engagement.start()
         self.nuclear_participation.start()
 
-    @tasks.loop(minutes=7)
+    @tasks.loop(hours=24)
     async def hyperdrive_mode(self):
         """Activate hyperdrive engagement mode"""
         hyperdrive_events = [
@@ -68,7 +68,7 @@ class EngagementOverdrive(commands.Cog):
                     except:
                         pass
 
-    @tasks.loop(minutes=21)
+    @tasks.loop(hours=18)
     async def turbocharged_events(self):
         """Create turbocharged mega-events"""
         turbo_events = [
@@ -163,7 +163,7 @@ class EngagementOverdrive(commands.Cog):
                     except:
                         pass
 
-    @tasks.loop(minutes=26)
+    @tasks.loop(hours=24)
     async def nuclear_participation(self):
         """Nuclear-level participation events"""
         nuclear_events = [
