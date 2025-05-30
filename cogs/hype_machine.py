@@ -12,7 +12,7 @@ class HypeMachine(commands.Cog):
         self.energy_waves.start()
         self.momentum_builder.start()
 
-    @tasks.loop(minutes=45)
+    @tasks.loop(hours=6)
     async def hype_bursts(self):
         """Create sudden bursts of hype and energy"""
         hype_messages = [
@@ -30,7 +30,7 @@ class HypeMachine(commands.Cog):
         
         for guild in self.bot.guilds:
             general_channel = discord.utils.get(guild.text_channels, name="general-chat")
-            if general_channel and random.random() < 0.7:
+            if general_channel and random.random() < 0.2:
                 hype_msg = random.choice(hype_messages)
                 try:
                     message = await general_channel.send(hype_msg)

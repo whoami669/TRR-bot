@@ -13,7 +13,7 @@ class CommunityRevival(commands.Cog):
         self.activity_rewards.start()
         self.community_challenges.start()
 
-    @tasks.loop(hours=4)
+    @tasks.loop(hours=24)
     async def conversation_starters(self):
         """Post engaging conversation starters"""
         starters = [

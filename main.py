@@ -211,6 +211,7 @@ class UltraBot(commands.Bot):
         
         # Load essential cogs (staying within Discord's 100 command limit)
         cogs = [
+            'cogs.spam_control',
             'cogs.moderation_advanced',
             'cogs.entertainment_suite',
             'cogs.utility_toolkit',

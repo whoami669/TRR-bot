@@ -13,7 +13,7 @@ class EngagementSystem(commands.Cog):
         self.voice_activity_tracker.start()
         self.member_milestones.start()
 
-    @tasks.loop(minutes=30)
+    @tasks.loop(hours=24)
     async def level_up_messages(self):
         """Encourage members to level up and be active"""
         motivational_messages = [
@@ -27,7 +27,7 @@ class EngagementSystem(commands.Cog):
         
         for guild in self.bot.guilds:
             general_channel = discord.utils.get(guild.text_channels, name="general-chat")
-            if general_channel and random.random() < 0.4:
+            if general_channel and random.random() < 0.05:
                 try:
                     message = random.choice(motivational_messages)
                     embed = discord.Embed(

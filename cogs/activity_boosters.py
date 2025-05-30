@@ -12,7 +12,7 @@ class ActivityBoosters(commands.Cog):
         self.voice_channel_monitor.start()
         self.trending_topics.start()
 
-    @tasks.loop(hours=1)
+    @tasks.loop(hours=8)
     async def hourly_boosters(self):
         """Send activity boosters every hour"""
         boosters = [

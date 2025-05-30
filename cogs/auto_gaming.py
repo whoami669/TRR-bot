@@ -14,7 +14,7 @@ class AutoGaming(commands.Cog):
     def cog_unload(self):
         self.gaming_questions_loop.cancel()
 
-    @tasks.loop(hours=2)
+    @tasks.loop(hours=12)
     async def gaming_questions_loop(self):
         """Automatically post gaming questions to boost engagement"""
         for guild in self.bot.guilds:
@@ -23,7 +23,7 @@ class AutoGaming(commands.Cog):
             
             target_channel = gaming_channel or general_channel
             
-            if target_channel and random.random() < 0.7:  # 70% chance every 2 hours
+            if target_channel and random.random() < 0.1:  # 10% chance every 12 hours
                 await self.post_gaming_question(target_channel)
 
     @gaming_questions_loop.before_loop
