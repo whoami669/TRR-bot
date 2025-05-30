@@ -209,9 +209,8 @@ class UltraBot(commands.Bot):
         # Initialize database
         await init_database()
         
-        # Load all cogs
+        # Load essential cogs (staying within Discord's 100 command limit)
         cogs = [
-            'cogs.ai_features',
             'cogs.moderation_advanced',
             'cogs.entertainment_suite',
             'cogs.utility_toolkit',
@@ -239,12 +238,6 @@ class UltraBot(commands.Bot):
             'cogs.engagement_overdrive',
             'cogs.gamer_suite',
             'cogs.content_creator_suite',
-            'cogs.streamer_tools',
-            'cogs.esports_management',
-            'cogs.developer_toolkit',
-            'cogs.ai_intelligence',
-            'cogs.advanced_moderation',
-            'cogs.creative_studio',
         ]
         
         for cog in cogs:
