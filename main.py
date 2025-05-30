@@ -122,9 +122,34 @@ async def init_database():
                 guild_id INTEGER NOT NULL,
                 channel_id INTEGER NOT NULL,
                 message TEXT NOT NULL,
-                scheduled_time TEXT NOT NULL,
+                send_at TIMESTAMP NOT NULL,
                 created_by INTEGER NOT NULL,
                 sent BOOLEAN DEFAULT FALSE
+            )
+        ''')
+        
+        # Create role menus table for customization hub
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS role_menus (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                guild_id INTEGER NOT NULL,
+                channel_id INTEGER NOT NULL,
+                message_id INTEGER NOT NULL,
+                title TEXT,
+                description TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
+        # Create role menu options table
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS role_menu_options (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                menu_id INTEGER NOT NULL,
+                role_id INTEGER NOT NULL,
+                emoji TEXT,
+                description TEXT,
+                FOREIGN KEY (menu_id) REFERENCES role_menus (id)
             )
         ''')
         

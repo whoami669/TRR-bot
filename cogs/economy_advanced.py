@@ -295,7 +295,7 @@ class EconomyAdvanced(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="leaderboard", description="View the server's richest members")
+    @app_commands.command(name="economy_leaderboard", description="View the server's richest members")
     async def economy_leaderboard(self, interaction: discord.Interaction):
         async with aiosqlite.connect('ultrabot.db') as db:
             async with db.execute('''
