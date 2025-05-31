@@ -190,23 +190,7 @@ class AIIntelligence(commands.Cog):
         
         await interaction.response.send_message(embed=embed)
 
-    @discord.app_commands.command(name="ai_translate", description="Real-time multilingual translation")
-    async def ai_translate(self, interaction: discord.Interaction, 
-                          text: str, target_language: str, 
-                          source_language: str = "auto"):
-        """Translate text between languages"""
-        # Note: This would integrate with a real translation API in production
-        embed = discord.Embed(
-            title="🌍 AI Translation",
-            color=0x20b2aa
-        )
-        embed.add_field(name="Original Text", value=text, inline=False)
-        embed.add_field(name="From", value=source_language, inline=True)
-        embed.add_field(name="To", value=target_language, inline=True)
-        embed.add_field(name="Translation", value=f"[{target_language} translation of: {text}]", inline=False)
-        embed.set_footer(text="AI Translation requires API key for full functionality")
-        
-        await interaction.response.send_message(embed=embed)
+
 
     @discord.app_commands.command(name="ai_summarize", description="Summarize channel discussions")
     async def ai_summarize(self, interaction: discord.Interaction, 

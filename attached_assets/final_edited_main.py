@@ -12,25 +12,7 @@ def block_forbidden_messages(content: str) -> bool:
         "VIRAL CHALLENGE ALERT",
         "BREAKING",
         "CONTROVERSIAL gaming confession",
-        "Collaboration corner",
-        "COMMUNITY PULSE",
-        "ENERGY CHECK",
-        "HYPE TRAIN",
-        "MOMENTUM ALERT",
-        "POWER SURGE",
-        "VIBE CHECK",
-        "PEAK PERFORMANCE",
-        "UNSTOPPABLE FORCE",
-        "STAR POWER",
-        "WAVE OF ENERGY",
-        "DIAMOND MINDSET",
-        "ENERGY AMPLIFICATION",
-        "ENTHUSIASM OVERDRIVE",
-        "PASSION AMPLIFIER",
-        "HYPERDRIVE",
-        "TURBOCHARGED",
-        "MAXIMUM ENGAGEMENT",
-        "NUCLEAR PARTICIPATION"
+        "Collaboration corner"
     ]
     for phrase in forbidden_phrases:
         if phrase.lower() in content.lower():
@@ -55,25 +37,7 @@ def filter_message(content: str) -> str:
         "VIRAL CHALLENGE ALERT",
         "BREAKING",
         "CONTROVERSIAL gaming confession",
-        "Collaboration corner",
-        "COMMUNITY PULSE",
-        "ENERGY CHECK",
-        "HYPE TRAIN",
-        "MOMENTUM ALERT",
-        "POWER SURGE",
-        "VIBE CHECK",
-        "PEAK PERFORMANCE",
-        "UNSTOPPABLE FORCE",
-        "STAR POWER",
-        "WAVE OF ENERGY",
-        "DIAMOND MINDSET",
-        "ENERGY AMPLIFICATION",
-        "ENTHUSIASM OVERDRIVE",
-        "PASSION AMPLIFIER",
-        "HYPERDRIVE",
-        "TURBOCHARGED",
-        "MAXIMUM ENGAGEMENT",
-        "NUCLEAR PARTICIPATION"
+        "Collaboration corner"
     ]
     for phrase in forbidden_phrases:
         if phrase.lower() in content.lower():
@@ -389,7 +353,6 @@ class UltraBot(commands.Bot):
             'cogs.energy_multiplier',
             'cogs.engagement_overdrive',
             'cogs.gamer_suite',
-            'cogs.ai_features',
         ]
         
         for cog in cogs:

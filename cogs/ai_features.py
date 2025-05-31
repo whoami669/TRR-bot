@@ -17,18 +17,18 @@ class AIFeatures(commands.Cog):
         self.openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
     
     # AI Chat Commands
-    @app_commands.command(name="chatgpt", description="Chat with ChatGPT")
+    @app_commands.command(name="ai", description="Chat with AI assistant")
     @app_commands.describe(
-        prompt="Your message to ChatGPT",
+        prompt="Your message to the AI",
         model="AI model to use",
-        system="Custom instructions for ChatGPT"
+        system="Custom instructions for the AI"
     )
     @app_commands.choices(model=[
         app_commands.Choice(name="GPT-4o (Latest)", value="gpt-4o"),
         app_commands.Choice(name="GPT-4 Turbo", value="gpt-4-turbo"),
         app_commands.Choice(name="GPT-3.5 Turbo", value="gpt-3.5-turbo")
     ])
-    async def chatgpt(self, interaction: discord.Interaction, prompt: str, 
+    async def ai(self, interaction: discord.Interaction, prompt: str, 
                       model: str = "gpt-4o", system: str = None):
         await interaction.response.defer()
         
@@ -203,43 +203,7 @@ class AIFeatures(commands.Cog):
         except Exception as e:
             await interaction.followup.send(f"❌ Summary error: {str(e)}", ephemeral=True)
 
-    @app_commands.command(name="translate", description="Translate text between languages")
-    @app_commands.describe(
-        text="Text to translate",
-        target_language="Language to translate to",
-        source_language="Source language (auto-detect if not specified)"
-    )
-    async def translate_text(self, interaction: discord.Interaction, text: str, 
-                           target_language: str, source_language: str = "auto"):
-        await interaction.response.defer()
-        
-        try:
-            prompt = f"Translate the following text to {target_language}:"
-            if source_language != "auto":
-                prompt = f"Translate the following {source_language} text to {target_language}:"
-            
-            response = self.openai_client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are a professional translator. Provide only the translation."},
-                    {"role": "user", "content": f"{prompt}\n\n{text}"}
-                ],
-                max_tokens=1000
-            )
-            
-            embed = discord.Embed(
-                title="🌐 Translation",
-                color=discord.Color.blue()
-            )
-            embed.add_field(name="Original", value=text[:1000], inline=False)
-            embed.add_field(name=f"Translated ({target_language})", 
-                          value=response.choices[0].message.content, inline=False)
-            embed.set_footer(text=f"Translated by {interaction.user.display_name}")
-            
-            await interaction.followup.send(embed=embed)
-            
-        except Exception as e:
-            await interaction.followup.send(f"❌ Translation error: {str(e)}", ephemeral=True)
+
 
     @app_commands.command(name="code-explain", description="Explain code or programming concepts")
     @app_commands.describe(
