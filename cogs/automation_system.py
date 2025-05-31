@@ -12,8 +12,9 @@ from typing import Optional
 class AutomationSystem(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        # Keep only essential functions, disable automated messaging
         self.auto_role_check.start()
-        self.scheduled_messages.start()
+        # self.scheduled_messages.start()  # Disabled due to database errors
 
     def cog_unload(self):
         self.auto_role_check.cancel()
