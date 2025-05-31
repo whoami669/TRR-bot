@@ -17,37 +17,38 @@ class AIFeatures(commands.Cog):
         self.openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
     
     # AI Chat Commands
-    @app_commands.command(name="ai", description="Chat with AI assistant")
+    @app_commands.command(name="chatgpt", description="Chat with ChatGPT")
     @app_commands.describe(
-        prompt="Your message to the AI",
+        prompt="Your message to ChatGPT",
         model="AI model to use",
-        system="System prompt to customize AI behavior"
+        system="Custom instructions for ChatGPT"
     )
     @app_commands.choices(model=[
         app_commands.Choice(name="GPT-4o (Latest)", value="gpt-4o"),
         app_commands.Choice(name="GPT-4 Turbo", value="gpt-4-turbo"),
         app_commands.Choice(name="GPT-3.5 Turbo", value="gpt-3.5-turbo")
     ])
-    async def ai_chat(self, interaction: discord.Interaction, prompt: str, 
+    async def chatgpt(self, interaction: discord.Interaction, prompt: str, 
                       model: str = "gpt-4o", system: str = None):
         await interaction.response.defer()
         
         try:
             messages = [
-                {"role": "system", "content": system or "You are a helpful Discord bot assistant."},
+                {"role": "system", "content": system or "You are ChatGPT, a helpful AI assistant created by OpenAI. You're integrated into a Discord bot to help users with various tasks."},
                 {"role": "user", "content": prompt}
             ]
             
             response = self.openai_client.chat.completions.create(
                 model=model,
                 messages=messages,
-                max_tokens=2000
+                max_tokens=2000,
+                temperature=0.7
             )
             
             embed = discord.Embed(
-                title="🤖 AI Assistant",
+                title="💬 ChatGPT Response",
                 description=response.choices[0].message.content,
-                color=discord.Color.blue()
+                color=0x00D084
             )
             embed.set_footer(text=f"Model: {model} | Requested by {interaction.user.display_name}")
             

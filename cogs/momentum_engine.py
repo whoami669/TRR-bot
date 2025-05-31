@@ -8,10 +8,8 @@ from datetime import datetime, timezone, timedelta
 class MomentumEngine(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.peak_hour_detector.start()
-        self.conversation_momentum.start()
-        self.energy_sustainer.start()
-        self.activity_cascades.start()
+        # All automated messaging completely disabled
+        pass
 
     @tasks.loop(minutes=10)
     async def peak_hour_detector(self):

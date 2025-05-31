@@ -8,10 +8,8 @@ from datetime import datetime, timezone, timedelta
 class ActivityWaves(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.wave_generator.start()
-        self.activity_storms.start()
-        self.engagement_tsunamis.start()
-        self.community_pulses.start()
+        # All automated messaging completely disabled
+        pass
 
     @tasks.loop(minutes=6)
     async def wave_generator(self):
