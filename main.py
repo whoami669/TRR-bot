@@ -427,8 +427,6 @@ class UltraBot(commands.Bot):
             'cogs.social_features',
             'cogs.automation_system',
             'cogs.economy_advanced',
-            'cogs.customization_hub',
-            'cogs.security_suite',
             'cogs.productivity_tools',
             'cogs.server_takeover',
             'cogs.community_revival',
@@ -442,8 +440,7 @@ class UltraBot(commands.Bot):
             'cogs.interaction_engine',
             'cogs.activity_waves',
             'cogs.ai_features',
-            'cogs.spotify_integration',
-            'cogs.soundcloud_music',
+            'cogs.soundcloud_music',  # Only SoundCloud music system
             'cogs.help_system',
         ]
         
