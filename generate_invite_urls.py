@@ -21,16 +21,21 @@ def generate_invite_urls():
     print(f"2. NO PERMISSIONS (Basic):")
     print(f"   {basic_url}\n")
     
-    # 3. Essential permissions only
-    essential_perms = discord.Permissions(
+    # 3. Reaction support permissions (fixes reaction issues)
+    reaction_perms = discord.Permissions(
+        view_channel=True,
         send_messages=True,
         read_messages=True,
+        read_message_history=True,
+        add_reactions=True,  # Critical for reactions
         embed_links=True,
-        use_slash_commands=True
+        attach_files=True,
+        use_external_emojis=True,
+        use_application_commands=True
     )
-    essential_url = discord.utils.oauth_url(CLIENT_ID, permissions=essential_perms, scopes=["bot", "applications.commands"])
-    print(f"3. ESSENTIAL ONLY:")
-    print(f"   {essential_url}\n")
+    reaction_url = discord.utils.oauth_url(CLIENT_ID, permissions=reaction_perms, scopes=["bot", "applications.commands"])
+    print(f"3. REACTION SUPPORT (Fixes reaction issues):")
+    print(f"   {reaction_url}\n")
     
     # 4. Full bot permissions (what your bot currently requests)
     full_perms = discord.Permissions(
