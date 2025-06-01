@@ -555,6 +555,32 @@ class UltraBot(commands.Bot):
         if message.author.bot:
             return
             
+        # Check if bot is mentioned or replied to
+        is_mentioned = self.user in message.mentions
+        is_reply = message.reference and message.reference.resolved and message.reference.resolved.author == self.user
+        
+        if is_mentioned or is_reply:
+            # Respond to mentions and replies
+            try:
+                responses = [
+                    f"Hey {message.author.mention}! 👋 Need help? Try `/help` to see all my commands!",
+                    f"What's up {message.author.mention}? 🤖 Use `/help` to explore my features!",
+                    f"Hello there {message.author.mention}! ⚡ I'm here to help - check out `/help` for everything I can do!",
+                    f"Hi {message.author.mention}! 🎮 Looking for something fun? Try `/trivia` or `/games`!",
+                    f"Greetings {message.author.mention}! 🚀 Ready to boost your server? Use `/help` to get started!"
+                ]
+                
+                import random
+                response = random.choice(responses)
+                await message.reply(response)
+                
+            except Exception as e:
+                # Fallback response if there's an error
+                try:
+                    await message.reply("Hey! Use `/help` to see what I can do! 🤖")
+                except:
+                    pass  # If we can't reply, just continue
+            
         # Process analytics
         if message.guild:
             async with aiosqlite.connect('ultrabot.db') as db:
