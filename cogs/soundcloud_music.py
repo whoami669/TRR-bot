@@ -155,6 +155,50 @@ class SoundCloudMusic(commands.Cog):
         
         await interaction.response.send_message("Left the voice channel and cleared the queue.")
 
+    @discord.app_commands.command(name="search", description="Search for songs and get suggestions")
+    async def search_songs(self, interaction: discord.Interaction, query: str):
+        """Search for songs and show multiple results"""
+        await interaction.response.defer()
+        
+        try:
+            loop = asyncio.get_event_loop()
+            data = await loop.run_in_executor(
+                None, 
+                lambda: self.ytdl.extract_info(f"ytsearch5:{query} site:soundcloud.com", download=False)
+            )
+            
+            if not data or 'entries' not in data or not data['entries']:
+                await interaction.followup.send(f"No results found for '{query}'")
+                return
+            
+            embed = discord.Embed(
+                title=f"🔍 Search Results for '{query}'",
+                description="Choose a song to play by using `/play` with the exact title",
+                color=0xFF5500
+            )
+            
+            for i, entry in enumerate(data['entries'][:5], 1):
+                title = entry.get('title', 'Unknown')
+                duration = entry.get('duration', 0)
+                uploader = entry.get('uploader', 'Unknown')
+                
+                duration_str = "Unknown"
+                if duration:
+                    minutes = duration // 60
+                    seconds = duration % 60
+                    duration_str = f"{minutes}:{seconds:02d}"
+                
+                embed.add_field(
+                    name=f"{i}. {title}",
+                    value=f"**Artist:** {uploader}\n**Duration:** {duration_str}",
+                    inline=False
+                )
+            
+            await interaction.followup.send(embed=embed)
+            
+        except Exception as e:
+            await interaction.followup.send(f"Search error: {str(e)}")
+
     @discord.app_commands.command(name="play", description="Play a song from SoundCloud")
     async def play(self, interaction: discord.Interaction, query: str):
         """Play music from SoundCloud"""
@@ -179,7 +223,7 @@ class SoundCloudMusic(commands.Cog):
         # Search for the song
         song_info = await self.search_soundcloud(query)
         if not song_info:
-            await interaction.followup.send(f"No results found for '{query}'")
+            await interaction.followup.send(f"No results found for '{query}'. Try using `/search` first to see available options.")
             return
         
         # Create song object
