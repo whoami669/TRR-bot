@@ -447,6 +447,11 @@ class UltraBot(commands.Bot):
             'cogs.engagement_overdrive',
             'cogs.gamer_suite',
             'cogs.ai_features',
+            'cogs.advanced_utilities',
+            'cogs.server_management',
+            'cogs.games_entertainment',
+            'cogs.web_tools',
+            'cogs.help_system',
         ]
         
         for cog in cogs:
