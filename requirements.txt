@@ -7,3 +7,6 @@ aiohttp==3.12.4
 openai
 psutil
 spotipy
+PyNaCl
+soundcloud-lib
+yt-dlp

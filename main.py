@@ -443,6 +443,7 @@ class UltraBot(commands.Bot):
             'cogs.activity_waves',
             'cogs.ai_features',
             'cogs.spotify_integration',
+            'cogs.soundcloud_music',
             'cogs.help_system',
         ]
         
