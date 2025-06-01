@@ -482,7 +482,7 @@ class UltraBot(commands.Bot):
         await self.change_presence(
             activity=discord.Activity(
                 type=discord.ActivityType.watching,
-                name="your community grow | /help"
+                name=":ehorny: a server full of legends | /help"
             )
         )
 
