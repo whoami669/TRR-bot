@@ -10,44 +10,120 @@ import json
 import asyncio
 from PIL import Image
 import os
+import logging
+import time
+from typing import Optional, List, Dict
+from collections import defaultdict
+
+logger = logging.getLogger(__name__)
+
+class AIConversationManager:
+    """Enhanced conversation memory system"""
+    def __init__(self, max_context_length: int = 8):
+        self.conversations = {}
+        self.max_context_length = max_context_length
+    
+    def get_conversation(self, user_id: int, channel_id: int) -> List[Dict]:
+        key = f"{user_id}_{channel_id}"
+        return self.conversations.get(key, [])
+    
+    def add_message(self, user_id: int, channel_id: int, role: str, content: str):
+        key = f"{user_id}_{channel_id}"
+        if key not in self.conversations:
+            self.conversations[key] = []
+        
+        self.conversations[key].append({"role": role, "content": content})
+        
+        if len(self.conversations[key]) > self.max_context_length:
+            self.conversations[key] = self.conversations[key][-self.max_context_length:]
+    
+    def clear_conversation(self, user_id: int, channel_id: int):
+        key = f"{user_id}_{channel_id}"
+        if key in self.conversations:
+            del self.conversations[key]
 
 class AIFeatures(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.openai_client = openai.OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+        self.conversation_manager = AIConversationManager()
+        self.usage_tracker = defaultdict(int)
     
     # AI Chat Commands
-    @app_commands.command(name="ai", description="Chat with AI assistant")
+    async def log_usage(self, user_id: int, command: str, tokens: int = 0):
+        """Track AI usage for analytics"""
+        try:
+            async with aiosqlite.connect('ultrabot.db') as db:
+                await db.execute('''
+                    INSERT OR IGNORE INTO ai_usage 
+                    (user_id, command_name, tokens_used, timestamp)
+                    VALUES (?, ?, ?, datetime('now'))
+                ''', (user_id, command, tokens))
+                await db.commit()
+        except Exception as e:
+            logger.error(f"Failed to log usage: {e}")
+
+    @app_commands.command(name="ai", description="Enhanced AI chat with conversation memory")
     @app_commands.describe(
         prompt="Your message to the AI",
         model="AI model to use",
-        system="Custom instructions for the AI"
+        system="Custom instructions for the AI",
+        remember="Remember this conversation for context"
     )
     @app_commands.choices(model=[
-        app_commands.Choice(name="GPT-4o (Latest)", value="gpt-4o"),
+        app_commands.Choice(name="GPT-4o (Latest & Best)", value="gpt-4o"),
         app_commands.Choice(name="GPT-4 Turbo", value="gpt-4-turbo"),
-        app_commands.Choice(name="GPT-3.5 Turbo", value="gpt-3.5-turbo")
+        app_commands.Choice(name="GPT-3.5 Turbo (Faster)", value="gpt-3.5-turbo")
     ])
     async def ai(self, interaction: discord.Interaction, prompt: str, 
-                      model: str = "gpt-4o", system: str = None):
+                 model: str = "gpt-4o", system: str = None, remember: bool = True):
         await interaction.response.defer()
         
         try:
-            messages = [
-                {"role": "system", "content": system or "You are ChatGPT, a helpful AI assistant created by OpenAI. You're integrated into a Discord bot to help users with various tasks."},
-                {"role": "user", "content": prompt}
-            ]
+            # Build conversation with memory
+            messages = []
+            if remember:
+                conversation = self.conversation_manager.get_conversation(
+                    interaction.user.id, interaction.channel.id
+                )
+                messages.extend(conversation)
             
+            # Add system message if not present
+            system_msg = system or f"""You are ChatGPT, an AI assistant integrated into Discord. 
+            You're helping {interaction.user.display_name} in the {interaction.guild.name} server.
+            Be helpful, concise, and engaging. Format responses nicely for Discord."""
+            
+            if not messages or messages[0]["role"] != "system":
+                messages.insert(0, {"role": "system", "content": system_msg})
+            
+            messages.append({"role": "user", "content": prompt})
+            
+            # Generate response with timing
+            start_time = time.time()
             response = self.openai_client.chat.completions.create(
                 model=model,
                 messages=messages,
                 max_tokens=2000,
                 temperature=0.7
             )
+            response_time = time.time() - start_time
             
+            ai_response = response.choices[0].message.content
+            tokens_used = response.usage.total_tokens if response.usage else 0
+            
+            # Update conversation memory
+            if remember:
+                self.conversation_manager.add_message(
+                    interaction.user.id, interaction.channel.id, "user", prompt
+                )
+                self.conversation_manager.add_message(
+                    interaction.user.id, interaction.channel.id, "assistant", ai_response
+                )
+            
+            # Enhanced embed with metrics
             embed = discord.Embed(
-                title="💬 ChatGPT Response",
-                description=response.choices[0].message.content,
+                title="🤖 AI Assistant",
+                description=ai_response,
                 color=0x00D084
             )
             embed.set_footer(text=f"Model: {model} | Requested by {interaction.user.display_name}")

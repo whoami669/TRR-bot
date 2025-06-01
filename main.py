@@ -10,7 +10,8 @@ from datetime import datetime, timezone
 import time
 import traceback
 from collections import defaultdict
-import hashlib
+import psutil
+import sys
 
 # Middleware for filtering message generation
 def block_forbidden_messages(content: str) -> bool:
@@ -353,6 +354,16 @@ async def init_database():
             )
         ''')
         
+        await db.execute('''
+            CREATE TABLE IF NOT EXISTS ai_usage (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                command_name TEXT NOT NULL,
+                tokens_used INTEGER DEFAULT 0,
+                timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        ''')
+        
         await db.commit()
 
 class UltraBot(commands.Bot):
@@ -376,6 +387,22 @@ class UltraBot(commands.Bot):
             'database_queries': 0,
             'memory_usage': 0
         }
+        
+    async def get_system_stats(self):
+        """Get enhanced system performance statistics"""
+        try:
+            process = psutil.Process()
+            return {
+                'cpu_percent': psutil.cpu_percent(interval=1),
+                'memory_percent': psutil.virtual_memory().percent,
+                'memory_usage_mb': process.memory_info().rss / 1024 / 1024,
+                'uptime_hours': (time.time() - self.last_restart) / 3600,
+                'guilds': len(self.guilds),
+                'users': sum(guild.member_count or 0 for guild in self.guilds),
+                'commands_run': self.performance_metrics['commands_executed']
+            }
+        except Exception:
+            return {}
         
     async def get_prefix(self, message):
         if not message.guild:
