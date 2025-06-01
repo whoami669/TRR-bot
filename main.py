@@ -4,6 +4,13 @@ from discord import app_commands
 import asyncio
 import os
 import logging
+import aiosqlite
+import json
+from datetime import datetime, timezone
+import time
+import traceback
+from collections import defaultdict
+import hashlib
 
 # Middleware for filtering message generation
 def block_forbidden_messages(content: str) -> bool:
@@ -38,15 +45,27 @@ def block_forbidden_messages(content: str) -> bool:
             return False
     return True
 
-# Wrapping the message-sending logic to prevent generation of forbidden content
-async def safe_message_send(channel, content=None, **kwargs):
-    if content and not block_forbidden_messages(content):
-        logging.info("Blocked generation of a forbidden message.")
-        return  # Do not send the message
-    return await channel.send(content=content, **kwargs)
-
-# Override send for TextChannel
-discord.TextChannel.send = safe_message_send
+# Enhanced message filtering - simplified approach
+def enhanced_content_filter(content: str) -> bool:
+    """Enhanced content filtering with improved detection"""
+    if not content:
+        return True
+    
+    # Check for forbidden phrases
+    if not block_forbidden_messages(content):
+        return False
+    
+    # Additional spam detection
+    if len(content) > 2000:  # Discord's message limit
+        return False
+        
+    # Check for excessive caps (more than 70% uppercase)
+    if len(content) > 10:
+        caps_ratio = sum(1 for c in content if c.isupper()) / len(content)
+        if caps_ratio > 0.7:
+            return False
+    
+    return True
 
 # Function to filter undesired messages
 def filter_message(content: str) -> str:
@@ -343,9 +362,20 @@ class UltraBot(commands.Bot):
             command_prefix=self.get_prefix,
             intents=intents,
             help_command=None,
-            case_insensitive=True
+            case_insensitive=True,
+            max_messages=10000  # Increased message cache for better performance
         )
         self.start_time = datetime.now(timezone.utc)
+        self.command_stats = defaultdict(int)
+        self.error_count = 0
+        self.last_restart = time.time()
+        self.rate_limits = defaultdict(list)
+        self.performance_metrics = {
+            'commands_executed': 0,
+            'errors_handled': 0,
+            'database_queries': 0,
+            'memory_usage': 0
+        }
         
     async def get_prefix(self, message):
         if not message.guild:

@@ -1,0 +1,65 @@
+PS C:\Users\darea\Documents\TRR-bot> git add --all
+>> git commit -m "Add proper Python version file"
+>> git push heroku main
+On branch main
+Your branch is ahead of 'origin/main' by 4 commits.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+Enumerating objects: 301, done.
+Counting objects: 100% (301/301), done.
+Delta compression using up to 32 threads
+Compressing objects: 100% (118/118), done.
+Writing objects: 100% (301/301), 344.33 KiB | 57.39 MiB/s, done.
+Total 301 (delta 178), reused 288 (delta 173), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (178/178), done.
+remote: Updated 83 paths from c25d12a
+remote: Compressing source files... done.
+remote: Building source:
+remote:
+remote: -----> Building on the Heroku-24 stack
+remote: -----> Determining which buildpack to use for this app
+remote:  !     Warning: Multiple default buildpacks reported the ability to handle this app. The first buildpack in the list below will be used.
+remote:                         Detected buildpacks: Python,Node.js
+remote:                         See https://devcenter.heroku.com/articles/buildpacks#buildpack-detect-order
+remote: -----> Python app detected
+remote:
+remote:  !     Error: Invalid Python version in .python-version.
+remote:  !
+remote:  !     Multiple versions were found in your .python-version file:
+remote:  !
+remote: �
+remote:  !     �
+remote:  !
+remote:  !     Update the file so it contains only one Python version.
+remote:  !
+remote:  !     For example, to request the latest version of Python 3.13,
+remote:  !     update your .python-version file so it contains exactly:
+remote: ^[[1;31m !     3.13
+remote:  !
+remote:  !     If you have added comments to the file, make sure that those
+remote:  !     lines begin with a '#', so that they are ignored.
+remote:
+remote:  !     Push rejected, failed to compile Python app.
+remote:
+remote:  !     Push failed
+remote:  !
+remote:  ! ## Warning - The same version of this code has already been built: b388a101fd3249d6b9d917f1cae01fae4071b659
+remote:  !
+remote:  ! We have detected that you have triggered a build from source code with version b388a101fd3249d6b9d917f1cae01fae4071b659
+remote:  ! at least twice. One common cause of this behavior is attempting to deploy code from a different branch.
+remote:  !
+remote:  ! If you are developing on a branch and deploying via git you must run:
+remote:  !
+remote:  !     git push heroku <branchname>:main
+remote:  !
+remote:  ! This article goes into details on the behavior:
+remote:  !   https://devcenter.heroku.com/articles/duplicate-build-version
+remote:
+remote: Verifying deploy...
+remote:
+remote: !       Push rejected to trrr-bot.
+remote:
+To https://git.heroku.com/trrr-bot.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://git.heroku.com/trrr-bot.git'

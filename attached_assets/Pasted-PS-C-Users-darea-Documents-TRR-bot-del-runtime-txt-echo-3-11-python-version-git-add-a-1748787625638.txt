@@ -1,0 +1,54 @@
+PS C:\Users\darea\Documents\TRR-bot> del runtime.txt
+>> echo 3.11 > .python-version
+>> git add --all
+>> git commit -m "Fix Python version specification for Heroku"
+>> git push heroku main
+[main 787f7bb] Fix Python version specification for Heroku
+ 2 files changed, 1 deletion(-)
+ create mode 100644 .python-version
+ delete mode 100644 runtime.txt
+Enumerating objects: 293, done.
+Counting objects: 100% (293/293), done.
+Delta compression using up to 32 threads
+Compressing objects: 100% (111/111), done.
+Writing objects: 100% (293/293), 343.49 KiB | 68.70 MiB/s, done.
+Total 293 (delta 175), reused 288 (delta 173), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (175/175), done.
+remote: Updated 84 paths from ee37521
+remote: Compressing source files... done.
+remote: Building source:
+remote:
+remote: -----> Building on the Heroku-24 stack
+remote: -----> Determining which buildpack to use for this app
+remote:  !     Warning: Multiple default buildpacks reported the ability to handle this app. The first buildpack in the list below will be used.
+remote:                         Detected buildpacks: Python,Node.js
+remote:                         See https://devcenter.heroku.com/articles/buildpacks#buildpack-detect-order
+remote: -----> Python app detected
+remote:
+remote:  !     Error: Invalid Python version in .python-version.
+remote:  !
+remote:  !     Multiple versions were found in your .python-version file:
+remote:  !
+remote: �
+remote:  !     �
+remote:  !
+remote:  !     Update the file so it contains only one Python version.
+remote:  !
+remote:  !     For example, to request the latest version of Python 3.13,
+remote:  !     update your .python-version file so it contains exactly:
+remote: ^[[1;31m !     3.13
+remote:  !
+remote:  !     If you have added comments to the file, make sure that those
+remote:  !     lines begin with a '#', so that they are ignored.
+remote:
+remote:  !     Push rejected, failed to compile Python app.
+remote:
+remote:  !     Push failed
+remote: Verifying deploy...
+remote:
+remote: !       Push rejected to trrr-bot.
+remote:
+To https://git.heroku.com/trrr-bot.git
+ ! [remote rejected] main -> main (pre-receive hook declined)
+error: failed to push some refs to 'https://git.heroku.com/trrr-bot.git'
+PS C:\Users\darea\Documents\TRR-bot>

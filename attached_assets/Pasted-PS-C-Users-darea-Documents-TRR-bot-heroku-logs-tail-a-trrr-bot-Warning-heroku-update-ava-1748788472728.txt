@@ -1,0 +1,102 @@
+PS C:\Users\darea\Documents\TRR-bot> heroku logs --tail -a trrr-bot
+ »   Warning: heroku update available from 7.53.0 to 10.7.0.
+2025-06-01T14:32:33.730224+00:00 app[api]: Release v5 created by user muadomar03@gmail.com
+2025-06-01T14:32:33.748586+00:00 app[api]: Scaled to web@1:Basic worker@0:Basic by user muadomar03@gmail.com
+2025-06-01T14:32:35.714720+00:00 heroku[web.1]: Starting process with command `node server.js`
+2025-06-01T14:32:36.271016+00:00 app[web.1]: Python buildpack: Detected 512 MB available memory and 8 CPU cores.
+2025-06-01T14:32:36.271114+00:00 app[web.1]: Python buildpack: Defaulting WEB_CONCURRENCY to 2 based on the available memory.
+2025-06-01T14:32:36.288260+00:00 app[web.1]: /bin/bash: line 1: node: command not found
+2025-06-01T14:32:36.324332+00:00 heroku[web.1]: Process exited with status 127
+2025-06-01T14:32:36.351089+00:00 heroku[web.1]: State changed from starting to crashed
+2025-06-01T14:32:36.355114+00:00 heroku[web.1]: State changed from crashed to starting
+2025-06-01T14:32:38.191340+00:00 heroku[web.1]: Starting process with command `node server.js`
+2025-06-01T14:32:38.727979+00:00 app[web.1]: Python buildpack: Detected 512 MB available memory and 8 CPU cores.
+2025-06-01T14:32:38.728004+00:00 app[web.1]: Python buildpack: Defaulting WEB_CONCURRENCY to 2 based on the available memory.
+2025-06-01T14:32:38.745477+00:00 app[web.1]: /bin/bash: line 1: node: command not found
+2025-06-01T14:32:38.785928+00:00 heroku[web.1]: Process exited with status 127
+2025-06-01T14:32:38.812826+00:00 heroku[web.1]: State changed from starting to crashed
+2025-06-01T14:32:42.000000+00:00 app[api]: Build succeeded
+2025-06-01T14:33:03.684735+00:00 app[api]: Scaled to web@1:Basic worker@1:Basic by user muadomar03@gmail.com
+2025-06-01T14:33:05.661843+00:00 heroku[worker.1]: Starting process with command `python main.py`
+2025-06-01T14:33:06.283114+00:00 heroku[worker.1]: State changed from starting to up
+2025-06-01T14:33:06.584928+00:00 app[worker.1]: WARNING:discord.client:PyNaCl is not installed, voice will NOT be supported
+2025-06-01T14:33:06.584976+00:00 app[worker.1]: INFO:discord.client:logging in using static token
+2025-06-01T14:33:06.709970+00:00 app[worker.1]: Traceback (most recent call last):
+2025-06-01T14:33:06.709972+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/http.py", line 828, in static_login
+2025-06-01T14:33:06.710170+00:00 app[worker.1]: data = await self.request(Route('GET', '/users/@me'))
+2025-06-01T14:33:06.710266+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-06-01T14:33:06.710283+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/http.py", line 762, in request
+2025-06-01T14:33:06.710428+00:00 app[worker.1]: raise HTTPException(response, data)
+2025-06-01T14:33:06.710451+00:00 app[worker.1]: discord.errors.HTTPException: 401 Unauthorized (error code: 0): 401: Unauthorized
+2025-06-01T14:33:06.710460+00:00 app[worker.1]:
+2025-06-01T14:33:06.710460+00:00 app[worker.1]: The above exception was the direct cause of the following exception:
+2025-06-01T14:33:06.710460+00:00 app[worker.1]:
+2025-06-01T14:33:06.710462+00:00 app[worker.1]: Traceback (most recent call last):
+2025-06-01T14:33:06.710473+00:00 app[worker.1]: File "/app/main.py", line 522, in <module>
+2025-06-01T14:33:06.710590+00:00 app[worker.1]: asyncio.run(main())
+2025-06-01T14:33:06.710621+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/asyncio/runners.py", line 190, in run
+2025-06-01T14:33:06.710659+00:00 app[worker.1]: return runner.run(main)
+2025-06-01T14:33:06.710740+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^
+2025-06-01T14:33:06.710740+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/asyncio/runners.py", line 118, in run
+2025-06-01T14:33:06.710741+00:00 app[worker.1]: return self._loop.run_until_complete(task)
+2025-06-01T14:33:06.710806+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-06-01T14:33:06.710816+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+2025-06-01T14:33:06.710923+00:00 app[worker.1]: return future.result()
+2025-06-01T14:33:06.710966+00:00 app[worker.1]: ^^^^^^^^^^^^^^^
+2025-06-01T14:33:06.710967+00:00 app[worker.1]: File "/app/main.py", line 519, in main
+2025-06-01T14:33:06.711071+00:00 app[worker.1]: await bot.start(os.getenv('DISCORD_TOKEN'))
+2025-06-01T14:33:06.711091+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/client.py", line 823, in start
+2025-06-01T14:33:06.711214+00:00 app[worker.1]: await self.login(token)
+2025-06-01T14:33:06.711231+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/client.py", line 652, in login
+2025-06-01T14:33:06.711332+00:00 app[worker.1]: data = await self.http.static_login(token)
+2025-06-01T14:33:06.711397+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-06-01T14:33:06.711407+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/http.py", line 832, in static_login
+2025-06-01T14:33:06.711528+00:00 app[worker.1]: raise LoginFailure('Improper token has been passed.') from exc
+2025-06-01T14:33:06.711549+00:00 app[worker.1]: discord.errors.LoginFailure: Improper token has been passed.
+2025-06-01T14:33:06.731732+00:00 app[worker.1]: ERROR:asyncio:Unclosed connector
+2025-06-01T14:33:06.731733+00:00 app[worker.1]: connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7fd9554a9c50>, 8581982.243653359)])']
+2025-06-01T14:33:06.731734+00:00 app[worker.1]: connector: <aiohttp.connector.TCPConnector object at 0x7fd9554dd950>
+2025-06-01T14:33:06.804057+00:00 heroku[worker.1]: Process exited with status 1
+2025-06-01T14:33:06.824775+00:00 heroku[worker.1]: State changed from up to crashed
+2025-06-01T14:33:06.827754+00:00 heroku[worker.1]: State changed from crashed to starting
+2025-06-01T14:33:08.867554+00:00 heroku[worker.1]: Starting process with command `python main.py`
+2025-06-01T14:33:09.444226+00:00 heroku[worker.1]: State changed from starting to up
+2025-06-01T14:33:09.811118+00:00 app[worker.1]: WARNING:discord.client:PyNaCl is not installed, voice will NOT be supported
+2025-06-01T14:33:09.811224+00:00 app[worker.1]: INFO:discord.client:logging in using static token
+2025-06-01T14:33:09.957389+00:00 app[worker.1]: Traceback (most recent call last):
+2025-06-01T14:33:09.957391+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/http.py", line 828, in static_login
+2025-06-01T14:33:09.957589+00:00 app[worker.1]: data = await self.request(Route('GET', '/users/@me'))
+2025-06-01T14:33:09.957668+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-06-01T14:33:09.957686+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/http.py", line 762, in request
+2025-06-01T14:33:09.957823+00:00 app[worker.1]: raise HTTPException(response, data)
+2025-06-01T14:33:09.957848+00:00 app[worker.1]: discord.errors.HTTPException: 401 Unauthorized (error code: 0): 401: Unauthorized
+2025-06-01T14:33:09.957849+00:00 app[worker.1]:
+2025-06-01T14:33:09.957854+00:00 app[worker.1]: The above exception was the direct cause of the following exception:
+2025-06-01T14:33:09.957855+00:00 app[worker.1]:
+2025-06-01T14:33:09.957865+00:00 app[worker.1]: Traceback (most recent call last):
+2025-06-01T14:33:09.957865+00:00 app[worker.1]: File "/app/main.py", line 522, in <module>
+2025-06-01T14:33:09.958009+00:00 app[worker.1]: asyncio.run(main())
+2025-06-01T14:33:09.958022+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/asyncio/runners.py", line 190, in run
+2025-06-01T14:33:09.958076+00:00 app[worker.1]: return runner.run(main)
+2025-06-01T14:33:09.958118+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^
+2025-06-01T14:33:09.958128+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/asyncio/runners.py", line 118, in run
+2025-06-01T14:33:09.958164+00:00 app[worker.1]: return self._loop.run_until_complete(task)
+2025-06-01T14:33:09.958224+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-06-01T14:33:09.958235+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+2025-06-01T14:33:09.958347+00:00 app[worker.1]: return future.result()
+2025-06-01T14:33:09.958375+00:00 app[worker.1]: ^^^^^^^^^^^^^^^
+2025-06-01T14:33:09.958380+00:00 app[worker.1]: File "/app/main.py", line 519, in main
+2025-06-01T14:33:09.958552+00:00 app[worker.1]: await bot.start(os.getenv('DISCORD_TOKEN'))
+2025-06-01T14:33:09.958577+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/client.py", line 823, in start
+2025-06-01T14:33:09.958798+00:00 app[worker.1]: await self.login(token)
+2025-06-01T14:33:09.958822+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/client.py", line 652, in login
+2025-06-01T14:33:09.959044+00:00 app[worker.1]: data = await self.http.static_login(token)
+2025-06-01T14:33:09.959206+00:00 app[worker.1]: ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2025-06-01T14:33:09.959207+00:00 app[worker.1]: File "/app/.heroku/python/lib/python3.11/site-packages/discord/http.py", line 832, in static_login
+2025-06-01T14:33:09.959498+00:00 app[worker.1]: raise LoginFailure('Improper token has been passed.') from exc
+2025-06-01T14:33:09.959516+00:00 app[worker.1]: discord.errors.LoginFailure: Improper token has been passed.
+2025-06-01T14:33:09.976153+00:00 app[worker.1]: ERROR:asyncio:Unclosed connector
+2025-06-01T14:33:09.976154+00:00 app[worker.1]: connections: ['deque([(<aiohttp.client_proto.ResponseHandler object at 0x7f41c53d9c50>, 8580005.509266704)])']
+2025-06-01T14:33:09.976154+00:00 app[worker.1]: connector: <aiohttp.connector.TCPConnector object at 0x7f41c540db50>
+2025-06-01T14:33:10.046286+00:00 heroku[worker.1]: Process exited with status 1
+2025-06-01T14:33:10.074369+00:00 heroku[worker.1]: State changed from up to crashed
