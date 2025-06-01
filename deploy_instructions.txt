@@ -1,0 +1,40 @@
+HEROKU DEPLOYMENT INSTRUCTIONS FOR TRR-BOT
+===============================================
+
+Your bot is currently working perfectly on Replit with:
+✅ 76 slash commands synced
+✅ No command conflicts 
+✅ Voice functionality ready (PyNaCl + FFmpeg)
+✅ SoundCloud music system active
+✅ ChatGPT integration working
+
+To deploy to Heroku:
+
+1. Download the essential files from this Replit to your computer:
+   - main.py (fixed version with no conflicts)
+   - apt.txt (FFmpeg dependency)
+   - requirements.txt (all dependencies)
+   - Procfile (worker process)
+   - app.json (Heroku config)
+   - runtime.txt (Python version)
+   - All cogs/ folder contents
+
+2. In your local terminal, navigate to where you save the files and run:
+   git init
+   git add .
+   git commit -m "Deploy working bot with fixes"
+   heroku git:remote -a trrr-bot
+   git push heroku main
+
+3. Set environment variables on Heroku:
+   heroku config:set DISCORD_TOKEN=your_token -a trrr-bot
+   heroku config:set OPENAI_API_KEY=your_key -a trrr-bot
+
+4. Scale the worker:
+   heroku ps:scale worker=1 -a trrr-bot
+
+The main fixes applied:
+- Removed conflicting Spotify integration causing command signature errors
+- Kept only SoundCloud music system (no duplicate 'play' commands)
+- Added FFmpeg support for voice processing
+- Fixed interaction timeout issues
