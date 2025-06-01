@@ -560,24 +560,52 @@ class UltraBot(commands.Bot):
         is_reply = message.reference and message.reference.resolved and message.reference.resolved.author == self.user
         
         if is_mentioned or is_reply:
-            # Respond to mentions and replies
+            # Respond with ChatGPT when mentioned or replied to
             try:
-                responses = [
-                    f"Hey {message.author.mention}! 👋 Need help? Try `/help` to see all my commands!",
-                    f"What's up {message.author.mention}? 🤖 Use `/help` to explore my features!",
-                    f"Hello there {message.author.mention}! ⚡ I'm here to help - check out `/help` for everything I can do!",
-                    f"Hi {message.author.mention}! 🎮 Looking for something fun? Try `/trivia` or `/games`!",
-                    f"Greetings {message.author.mention}! 🚀 Ready to boost your server? Use `/help` to get started!"
-                ]
+                # Get user's message content, removing bot mention
+                user_message = message.content
+                if self.user.mention in user_message:
+                    user_message = user_message.replace(self.user.mention, "").strip()
                 
-                import random
-                response = random.choice(responses)
-                await message.reply(response)
+                # If message is empty after removing mention, use a default
+                if not user_message:
+                    user_message = "Hello"
                 
+                # Use OpenAI to generate response
+                import openai
+                import os
+                
+                openai.api_key = os.getenv('OPENAI_API_KEY')
+                
+                if openai.api_key:
+                    # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
+                    # do not change this unless explicitly requested by the user
+                    response = openai.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {
+                                "role": "system", 
+                                "content": "You are a helpful Discord bot assistant. Be friendly, concise, and helpful. Keep responses under 200 characters when possible. You can mention that you have many slash commands available with /help if relevant."
+                            },
+                            {
+                                "role": "user", 
+                                "content": user_message
+                            }
+                        ],
+                        max_tokens=150,
+                        temperature=0.7
+                    )
+                    
+                    ai_response = response.choices[0].message.content
+                    await message.reply(ai_response)
+                else:
+                    # Fallback if no OpenAI key
+                    await message.reply("Hey! I'd love to chat but I need an OpenAI API key. Use `/help` to see my commands!")
+                    
             except Exception as e:
                 # Fallback response if there's an error
                 try:
-                    await message.reply("Hey! Use `/help` to see what I can do! 🤖")
+                    await message.reply("Hey! Use `/help` to see what I can do!")
                 except:
                     pass  # If we can't reply, just continue
             
