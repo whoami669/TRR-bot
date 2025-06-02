@@ -417,24 +417,9 @@ class UltraBot(commands.Bot):
         # Initialize database
         await init_database()
         
-        # Load essential cogs (staying within Discord's 100 command limit)
+        # Load only essential cogs without automated messaging
         cogs = [
-            'cogs.spam_control',
-            'cogs.advanced_analytics',
-            'cogs.moderation_advanced',
-            'cogs.entertainment_suite',
-            'cogs.utility_toolkit',
-            'cogs.social_features',
-            'cogs.automation_system',
-            'cogs.economy_advanced',
-            'cogs.productivity_tools',
-            'cogs.server_takeover',
-            'cogs.community_revival',
-            'cogs.engagement_system',
-
             'cogs.ai_features',
-            'cogs.soundcloud_music',  # Only SoundCloud music system
-            'cogs.help_system',
         ]
         
         for cog in cogs:
