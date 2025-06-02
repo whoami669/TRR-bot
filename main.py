@@ -422,6 +422,10 @@ class UltraBot(commands.Bot):
             'cogs.ai_features',
             'cogs.basic_commands',
             'cogs.moderation',
+            'cogs.economy',
+            'cogs.utility',
+            'cogs.entertainment',
+            'cogs.leveling',
         ]
         
         for cog in cogs:
@@ -467,81 +471,7 @@ class UltraBot(commands.Bot):
     async def on_message(self, message):
         if message.author.bot:
             return
-            
-        # Check if bot is mentioned or replied to
-        is_mentioned = self.user in message.mentions
-        is_reply = message.reference and message.reference.resolved and message.reference.resolved.author == self.user
-        
-        if is_mentioned or is_reply:
-            # Respond with ChatGPT when mentioned or replied to
-            try:
-                # Get user's message content, removing bot mention
-                user_message = message.content
-                if self.user.mention in user_message:
-                    user_message = user_message.replace(self.user.mention, "").strip()
-                
-                # If message is empty after removing mention, use a default
-                if not user_message:
-                    user_message = "Hello"
-                
-                # Use OpenAI to generate response
-                import openai
-                import os
-                
-                openai.api_key = os.getenv('OPENAI_API_KEY')
-                
-                if openai.api_key:
-                    # the newest OpenAI model is "gpt-4o" which was released May 13, 2024
-                    # do not change this unless explicitly requested by the user
-                    response = openai.chat.completions.create(
-                        model="gpt-4o",
-                        messages=[
-                            {
-                                "role": "system", 
-                                "content": "You are a helpful Discord bot assistant. Be friendly, concise, and helpful. Keep responses under 200 characters when possible. You can mention that you have many slash commands available with /help if relevant."
-                            },
-                            {
-                                "role": "user", 
-                                "content": user_message
-                            }
-                        ],
-                        max_tokens=150,
-                        temperature=0.7
-                    )
-                    
-                    ai_response = response.choices[0].message.content
-                    await message.reply(ai_response)
-                else:
-                    # Fallback if no OpenAI key
-                    await message.reply("Hey! I'd love to chat but I need an OpenAI API key. Use `/help` to see my commands!")
-                    
-            except Exception as e:
-                # Fallback response if there's an error
-                try:
-                    await message.reply("Hey! Use `/help` to see what I can do!")
-                except:
-                    pass  # If we can't reply, just continue
-            
-        # Process analytics
-        if message.guild:
-            async with aiosqlite.connect('ultrabot.db') as db:
-                await db.execute('''
-                    INSERT OR IGNORE INTO users (user_id, guild_id) VALUES (?, ?)
-                ''', (message.author.id, message.guild.id))
-                
-                await db.execute('''
-                    UPDATE users SET messages_sent = messages_sent + 1 
-                    WHERE user_id = ? AND guild_id = ?
-                ''', (message.author.id, message.guild.id))
-                
-                await db.execute('''
-                    INSERT INTO chat_analytics (guild_id, channel_id, user_id, message_length)
-                    VALUES (?, ?, ?, ?)
-                ''', (message.guild.id, message.channel.id, message.author.id, len(message.content)))
-                
-                await db.commit()
-        
-        await self.process_commands(message)
+        # No automated responses - only slash commands work
 
 async def main():
     bot = UltraBot()
