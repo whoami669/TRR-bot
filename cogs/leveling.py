@@ -202,49 +202,7 @@ class Leveling(commands.Cog):
             )
             await interaction.followup.send(embed=timeout_embed, ephemeral=True)
 
-    @commands.Cog.listener()
-    async def on_message(self, message):
-        if message.author.bot or not message.guild:
-            return
-        
-        # Random XP gain between 15-25 per message
-        xp_gain = random.randint(15, 25)
-        
-        # Check if user has gained XP recently (cooldown)
-        user_id = f"{message.guild.id}_{message.author.id}"
-        if hasattr(self, 'xp_cooldowns') and user_id in self.xp_cooldowns:
-            return
-        
-        if not hasattr(self, 'xp_cooldowns'):
-            self.xp_cooldowns = {}
-        
-        self.xp_cooldowns[user_id] = True
-        
-        # Remove cooldown after 60 seconds
-        async def remove_cooldown():
-            await asyncio.sleep(60)
-            if user_id in self.xp_cooldowns:
-                del self.xp_cooldowns[user_id]
-        
-        # Add XP and check for level up
-        old_level, new_level, new_xp = await self.add_xp(message.guild.id, message.author.id, xp_gain)
-        
-        # Send level up message if leveled up
-        if new_level > old_level:
-            embed = discord.Embed(
-                title="🎉 Level Up!",
-                description=f"{message.author.mention} reached level **{new_level}**!",
-                color=discord.Color.gold()
-            )
-            embed.add_field(name="Total XP", value=f"{new_xp:,}", inline=True)
-            
-            try:
-                await message.channel.send(embed=embed)
-            except:
-                pass  # Ignore if can't send messages
-        
-        # Schedule cooldown removal
-        self.bot.loop.create_task(remove_cooldown())
+    # Automatic XP gain disabled to prevent unwanted messages
 
 async def setup(bot):
     await bot.add_cog(Leveling(bot))
