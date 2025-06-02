@@ -431,14 +431,7 @@ class UltraBot(commands.Bot):
             'cogs.server_takeover',
             'cogs.community_revival',
             'cogs.engagement_system',
-            'cogs.auto_gaming',
-            'cogs.activity_boosters',
-            'cogs.viral_content',
-            'cogs.hype_machine',
-            'cogs.content_amplifier',
-            'cogs.momentum_engine',
-            'cogs.interaction_engine',
-            'cogs.activity_waves',
+
             'cogs.ai_features',
             'cogs.soundcloud_music',  # Only SoundCloud music system
             'cogs.help_system',
