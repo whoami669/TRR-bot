@@ -13,25 +13,8 @@ class HypeMachine(commands.Cog):
 
     @tasks.loop(hours=6)
     async def hype_bursts(self):
-        """Create sudden bursts of hype and energy"""
-        hype_messages = [
-            "🔥 **ENERGY CHECK!** Who's still crushing it today? React with ⚡ if you're ALIVE!",
-            "💥 **HYPE TRAIN INCOMING!** All aboard! What's got you pumped right now?",
-            "🚀 **MOMENTUM ALERT!** This server is about to EXPLODE with activity! Who's ready?",
-            "⚡ **POWER SURGE!** Drop your most FIRE gaming moment in the next 5 minutes!",
-            "🎊 **VIBE CHECK!** Rate your current energy: 1-10! Let's see those numbers!",
-            "💯 **PEAK PERFORMANCE MODE!** What achievement are you most proud of today?",
-            "🔥 **UNSTOPPABLE FORCE!** Name one thing that makes you feel LEGENDARY!",
-            "⭐ **STAR POWER ACTIVATED!** Time to shine! What's your superpower?",
-            "🌊 **WAVE OF ENERGY!** Ride this wave! What's your next big goal?",
-            "💎 **DIAMOND MINDSET!** Pressure makes diamonds! What challenge are you crushing?"
-        ]
-        
-        for guild in self.bot.guilds:
-            general_channel = discord.utils.get(guild.text_channels, name="general-chat")
-            if general_channel and random.random() < 0.2:
-                hype_msg = random.choice(hype_messages)
-                try:
+        """Disabled - no automated hype messages"""
+        return
                     message = await general_channel.send(hype_msg)
                     reactions = ["🔥", "⚡", "💥", "🚀", "💯", "⭐"]
                     for reaction in random.sample(reactions, 3):

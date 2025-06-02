@@ -8,13 +8,12 @@ from datetime import datetime, timezone, timedelta
 class ViralContent(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.viral_challenges.start()
-        self.trend_monitor.start()
-        self.content_boost.start()
+        # All automated messaging disabled
 
     @tasks.loop(hours=6)
     async def viral_challenges(self):
-        """Post viral-style challenges and trends"""
+        """Disabled - no automated challenges"""
+        return
         challenges = [
             {
                 "title": "🔥 Gaming Setup Tour Challenge",
