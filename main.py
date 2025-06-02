@@ -38,7 +38,10 @@ def block_forbidden_messages(content: str) -> bool:
         "HYPERDRIVE",
         "TURBOCHARGED",
         "MAXIMUM ENGAGEMENT",
-        "NUCLEAR PARTICIPATION"
+        "NUCLEAR PARTICIPATION",
+        "CONVERSATION SPARK",
+        "conversation spark",
+        "🚀 CONVERSATION SPARK"
     ]
     for phrase in forbidden_phrases:
         if phrase.lower() in content.lower():
@@ -93,7 +96,10 @@ def filter_message(content: str) -> str:
         "HYPERDRIVE",
         "TURBOCHARGED",
         "MAXIMUM ENGAGEMENT",
-        "NUCLEAR PARTICIPATION"
+        "NUCLEAR PARTICIPATION",
+        "CONVERSATION SPARK",
+        "conversation spark",
+        "🚀 CONVERSATION SPARK"
     ]
     for phrase in forbidden_phrases:
         if phrase.lower() in content.lower():
