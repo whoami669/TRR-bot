@@ -417,9 +417,11 @@ class UltraBot(commands.Bot):
         # Initialize database
         await init_database()
         
-        # Load only essential cogs without automated messaging
+        # Load essential cogs without automated messaging
         cogs = [
             'cogs.ai_features',
+            'cogs.basic_commands',
+            'cogs.moderation',
         ]
         
         for cog in cogs:
@@ -436,10 +438,7 @@ class UltraBot(commands.Bot):
         except Exception as e:
             print(f"❌ Failed to sync commands: {e}")
         
-        # Start background tasks
-        self.cleanup_tasks.start()
-        self.analytics_processor.start()
-        self.reminder_checker.start()
+        # No background tasks to prevent automated messaging
 
     async def on_ready(self):
         print(f"🤖 {self.user.name} - Ultra Multi-Functional Bot")
@@ -463,61 +462,7 @@ class UltraBot(commands.Bot):
             )
             await db.commit()
 
-    @tasks.loop(hours=1)
-    async def cleanup_tasks(self):
-        """Clean up expired data"""
-        async with aiosqlite.connect('ultrabot.db') as db:
-            # Clean old reminder entries
-            await db.execute(
-                'DELETE FROM reminders WHERE remind_at < datetime("now", "-7 days")'
-            )
-            # Clean old analytics data (keep 30 days)
-            await db.execute(
-                'DELETE FROM chat_analytics WHERE timestamp < datetime("now", "-30 days")'
-            )
-            await db.commit()
-
-    @tasks.loop(minutes=5)
-    async def analytics_processor(self):
-        """Process chat analytics and generate insights"""
-        # This would contain analytics processing logic
-        pass
-
-    @tasks.loop(minutes=1)
-    async def reminder_checker(self):
-        """Check and send reminders"""
-        async with aiosqlite.connect('ultrabot.db') as db:
-            async with db.execute(
-                'SELECT * FROM reminders WHERE remind_at <= datetime("now")'
-            ) as cursor:
-                reminders = await cursor.fetchall()
-                
-                for reminder in reminders:
-                    try:
-                        channel = self.get_channel(reminder[3])
-                        user = self.get_user(reminder[1])
-                        if channel and user:
-                            embed = discord.Embed(
-                                title="⏰ Reminder",
-                                description=reminder[4],
-                                color=discord.Color.blue(),
-                                timestamp=datetime.now(timezone.utc)
-                            )
-                            embed.set_footer(text=f"Reminder for {user.display_name}")
-                            await channel.send(f"{user.mention}", embed=embed)
-                            
-                        # Remove completed reminder
-                        await db.execute('DELETE FROM reminders WHERE id = ?', (reminder[0],))
-                    except Exception as e:
-                        print(f"Error sending reminder: {e}")
-                        
-                await db.commit()
-
-    @cleanup_tasks.before_loop
-    @analytics_processor.before_loop
-    @reminder_checker.before_loop
-    async def before_loops(self):
-        await self.wait_until_ready()
+    # All automated background tasks removed to prevent unwanted messages
 
     async def on_message(self, message):
         if message.author.bot:
