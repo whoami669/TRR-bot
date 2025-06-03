@@ -9,54 +9,60 @@ class ServerEvents(commands.Cog):
         self.bot = bot
         self.welcome_channel = None
         
-    async def setup_channel(self, guild):
-        """Setup server info category and welcome channel"""
+    async def setup_channels(self, guild):
+        """Setup welcome, leave, and boost channels in existing server info category"""
         try:
             # Look for existing category
             category = discord.utils.get(guild.categories, name="server info")
             
             if not category:
-                # Create category
-                category = await guild.create_category("server info")
-                print(f"Created 'server info' category in {guild.name}")
+                logging.warning(f"'server info' category not found in {guild.name}")
+                return None, None, None
             
-            # Look for existing channel
-            channel = discord.utils.get(category.channels, name="welcome-leave-boost")
+            # Create/find welcome channel
+            welcome_channel = discord.utils.get(category.channels, name="welcome")
+            if not welcome_channel:
+                welcome_channel = await guild.create_text_channel("welcome", category=category)
+                print(f"Created 'welcome' channel in {guild.name}")
             
-            if not channel:
-                # Create channel in the category
-                channel = await guild.create_text_channel(
-                    "welcome-leave-boost", 
-                    category=category
-                )
-                print(f"Created 'welcome-leave-boost' channel in {guild.name}")
+            # Create/find leave channel  
+            leave_channel = discord.utils.get(category.channels, name="leave")
+            if not leave_channel:
+                leave_channel = await guild.create_text_channel("leave", category=category)
+                print(f"Created 'leave' channel in {guild.name}")
+                
+            # Create/find boost channel
+            boost_channel = discord.utils.get(category.channels, name="boost")
+            if not boost_channel:
+                boost_channel = await guild.create_text_channel("boost", category=category)
+                print(f"Created 'boost' channel in {guild.name}")
             
-            return channel
+            return welcome_channel, leave_channel, boost_channel
             
         except discord.Forbidden:
             logging.warning(f"Missing permissions to create channels in {guild.name}")
-            return None
+            return None, None, None
         except Exception as e:
-            logging.error(f"Error setting up channel in {guild.name}: {e}")
-            return None
+            logging.error(f"Error setting up channels in {guild.name}: {e}")
+            return None, None, None
 
     @commands.Cog.listener()
     async def on_ready(self):
         """Setup channels when bot is ready"""
         for guild in self.bot.guilds:
-            await self.setup_channel(guild)
+            await self.setup_channels(guild)
 
     @commands.Cog.listener()
     async def on_guild_join(self, guild):
         """Setup channels when joining new guild"""
-        await self.setup_channel(guild)
+        await self.setup_channels(guild)
 
     @commands.Cog.listener()
     async def on_member_join(self, member):
         """Send welcome message when member joins"""
         try:
-            channel = await self.setup_channel(member.guild)
-            if not channel:
+            welcome_channel, _, _ = await self.setup_channels(member.guild)
+            if not welcome_channel:
                 return
                 
             # Get user avatar with fallback
@@ -71,7 +77,7 @@ class ServerEvents(commands.Cog):
             embed.set_thumbnail(url=avatar_url)
             embed.set_footer(text=f"Joined on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC")
             
-            await channel.send(embed=embed)
+            await welcome_channel.send(embed=embed)
             print(f"User joined: {member.name} in {member.guild.name}")
             
         except Exception as e:
@@ -81,8 +87,8 @@ class ServerEvents(commands.Cog):
     async def on_member_remove(self, member):
         """Send leave message when member leaves"""
         try:
-            channel = await self.setup_channel(member.guild)
-            if not channel:
+            _, leave_channel, _ = await self.setup_channels(member.guild)
+            if not leave_channel:
                 return
                 
             # Get user avatar with fallback
@@ -97,7 +103,7 @@ class ServerEvents(commands.Cog):
             embed.set_thumbnail(url=avatar_url)
             embed.set_footer(text=f"Left on {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')} UTC")
             
-            await channel.send(embed=embed)
+            await leave_channel.send(embed=embed)
             print(f"User left: {member.name} from {member.guild.name}")
             
         except Exception as e:
@@ -109,8 +115,8 @@ class ServerEvents(commands.Cog):
         try:
             # Check if user started boosting
             if before.premium_since is None and after.premium_since is not None:
-                channel = await self.setup_channel(after.guild)
-                if not channel:
+                _, _, boost_channel = await self.setup_channels(after.guild)
+                if not boost_channel:
                     return
                     
                 # Get user avatar with fallback
@@ -125,7 +131,7 @@ class ServerEvents(commands.Cog):
                 embed.set_thumbnail(url=avatar_url)
                 embed.set_footer(text=f"Total Boosts: {after.guild.premium_subscription_count}")
                 
-                await channel.send(embed=embed)
+                await boost_channel.send(embed=embed)
                 print(f"User boosted: {after.name} in {after.guild.name}")
                 
         except Exception as e:
@@ -156,31 +162,36 @@ class ServerEvents(commands.Cog):
             )
             logging.error(f"Error in boosts command: {e}")
 
-    @app_commands.command(name="setup-welcome", description="Setup welcome/leave/boost channel and category")
+    @app_commands.command(name="setup-welcome", description="Setup welcome/leave/boost channels in server info category")
     @app_commands.default_permissions(administrator=True)
     async def setup_welcome(self, interaction: discord.Interaction):
         """Manually setup the welcome system"""
         await interaction.response.defer()
         
         try:
-            channel = await self.setup_channel(interaction.guild)
+            welcome_channel, leave_channel, boost_channel = await self.setup_channels(interaction.guild)
             
-            if channel:
+            if welcome_channel and leave_channel and boost_channel:
                 embed = discord.Embed(
                     title="✅ Welcome System Setup Complete",
-                    description=f"Created/found:\n🗂️ **server info** category\n📝 {channel.mention} channel",
+                    description=f"Created/found in **server info** category:",
                     color=0x57F287
                 )
                 embed.add_field(
+                    name="Channels Created", 
+                    value=f"👋 {welcome_channel.mention}\n🚪 {leave_channel.mention}\n💎 {boost_channel.mention}", 
+                    inline=False
+                )
+                embed.add_field(
                     name="Features Active", 
-                    value="• Welcome messages\n• Leave messages\n• Boost notifications", 
+                    value="• Welcome messages → #welcome\n• Leave messages → #leave\n• Boost notifications → #boost", 
                     inline=False
                 )
                 await interaction.followup.send(embed=embed)
             else:
                 embed = discord.Embed(
                     title="❌ Setup Failed",
-                    description="Missing permissions to create channels/categories.",
+                    description="'server info' category not found or missing permissions.",
                     color=0xED4245
                 )
                 await interaction.followup.send(embed=embed, ephemeral=True)
