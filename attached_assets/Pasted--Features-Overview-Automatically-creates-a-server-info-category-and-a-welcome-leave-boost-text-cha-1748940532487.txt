@@ -1,0 +1,103 @@
+✅ Features Overview:
+Automatically creates a server info category and a welcome-leave-boost text channel (if not present).
+
+Sends embed messages on:
+
+👋 Member join
+
+🏃 Member leave
+
+💎 Server boost
+
+Uses:
+
+User avatars
+
+Timestamps (UTC)
+
+Server boost count
+
+Consistent embed styling
+
+Logs all events to console
+
+Resilient to missing data or permissions
+
+🏗️ 1. Channel & Category Auto-Creation
+On on_ready, check for a category named server info:
+
+If missing, create it.
+
+Within that category, check for a text channel named welcome-leave-boost:
+
+If missing, create it.
+
+Cache and reuse the channel object for sending messages.
+
+👋 2. On Member Join (on_member_join)
+Send an embed with:
+
+Title: New Arrival 🚀
+
+Description: Yoooo welcome in **{member.mention}**
+
+Color: Discord green (0x57F287)
+
+Thumbnail: member.avatar.url (fallback to default_avatar.url)
+
+Footer: Joined on {timestamp} UTC
+
+Timestamp field: Actual time in UTC
+
+🏃 3. On Member Leave (on_member_remove)
+Send an embed with:
+
+Title: Departure 🌿
+
+Description: **{member.name}** went to go touch some grass
+
+Color: Discord red (0xED4245)
+
+Thumbnail: User's avatar or default
+
+Footer: Left on {timestamp} UTC
+
+Timestamp field
+
+💎 4. On Server Boost (on_member_update)
+Detect new boosts by checking when before.premium_since is None and after.premium_since is not.
+
+Send an embed with:
+
+Title: Server Boosted 💎
+
+Description: Bro a legend called **{member.mention}** has boosted the server!
+
+Color: Purple (0x9B59B6)
+
+Thumbnail: User avatar
+
+Footer: Total Boosts: {guild.premium_subscription_count}
+
+Timestamp field
+
+🔒 5. Reliability & Quality Requirements
+Use async def and proper event dispatching
+
+Use datetime.now(timezone.utc) for timestamps
+
+All user avatar URLs should fallback to default if unavailable
+
+Wrap all channel operations in try/except blocks with logging
+
+Log to console:
+
+"User joined:", "User left:", "User boosted:" with username
+
+Modular structure preferred (but single script is fine for this example)
+
+🧪 Optional Bonus (if you can):
+
+Add slash command /boosts that replies with total current server boosts.
+
+Handle permission errors gracefully with log warnings.
