@@ -156,5 +156,41 @@ class ServerEvents(commands.Cog):
             )
             logging.error(f"Error in boosts command: {e}")
 
+    @app_commands.command(name="setup-welcome", description="Setup welcome/leave/boost channel and category")
+    @app_commands.default_permissions(administrator=True)
+    async def setup_welcome(self, interaction: discord.Interaction):
+        """Manually setup the welcome system"""
+        await interaction.response.defer()
+        
+        try:
+            channel = await self.setup_channel(interaction.guild)
+            
+            if channel:
+                embed = discord.Embed(
+                    title="✅ Welcome System Setup Complete",
+                    description=f"Created/found:\n🗂️ **server info** category\n📝 {channel.mention} channel",
+                    color=0x57F287
+                )
+                embed.add_field(
+                    name="Features Active", 
+                    value="• Welcome messages\n• Leave messages\n• Boost notifications", 
+                    inline=False
+                )
+                await interaction.followup.send(embed=embed)
+            else:
+                embed = discord.Embed(
+                    title="❌ Setup Failed",
+                    description="Missing permissions to create channels/categories.",
+                    color=0xED4245
+                )
+                await interaction.followup.send(embed=embed, ephemeral=True)
+                
+        except Exception as e:
+            await interaction.followup.send(
+                "Error setting up welcome system.", 
+                ephemeral=True
+            )
+            logging.error(f"Error in setup-welcome command: {e}")
+
 async def setup(bot):
     await bot.add_cog(ServerEvents(bot))
