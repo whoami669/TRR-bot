@@ -434,6 +434,7 @@ class UltraBot(commands.Bot):
             'cogs.leveling',
             'cogs.role_management',
             'cogs.permission_fixer',
+            'cogs.server_events',
         ]
         
         for cog in cogs:

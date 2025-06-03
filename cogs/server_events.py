@@ -10,34 +10,38 @@ class ServerEvents(commands.Cog):
         self.welcome_channel = None
         
     async def setup_channels(self, guild):
-        """Setup welcome, leave, and boost channels in existing server info category"""
+        """Setup welcome, leaves, and boosts channels in specified category"""
         try:
-            # Look for existing category
-            category = discord.utils.get(guild.categories, name="server info")
+            # Use the specific category ID
+            category_id = 1377685666972041296
+            category = guild.get_channel(category_id)
             
             if not category:
-                logging.warning(f"'server info' category not found in {guild.name}")
+                logging.warning(f"Category with ID {category_id} not found in {guild.name}")
                 return None, None, None
             
             # Create/find welcome channel
             welcome_channel = discord.utils.get(category.channels, name="welcome")
             if not welcome_channel:
-                welcome_channel = await guild.create_text_channel("welcome", category=category)
+                welcome_channel = await guild.create_text_channel("welcome", category=category, 
+                    topic="👋 New members join here")
                 print(f"Created 'welcome' channel in {guild.name}")
             
-            # Create/find leave channel  
-            leave_channel = discord.utils.get(category.channels, name="leave")
-            if not leave_channel:
-                leave_channel = await guild.create_text_channel("leave", category=category)
-                print(f"Created 'leave' channel in {guild.name}")
+            # Create/find leaves channel  
+            leaves_channel = discord.utils.get(category.channels, name="leaves")
+            if not leaves_channel:
+                leaves_channel = await guild.create_text_channel("leaves", category=category,
+                    topic="👋 Member departures logged here")
+                print(f"Created 'leaves' channel in {guild.name}")
                 
-            # Create/find boost channel
-            boost_channel = discord.utils.get(category.channels, name="boost")
-            if not boost_channel:
-                boost_channel = await guild.create_text_channel("boost", category=category)
-                print(f"Created 'boost' channel in {guild.name}")
+            # Create/find boosts channel
+            boosts_channel = discord.utils.get(category.channels, name="boosts")
+            if not boosts_channel:
+                boosts_channel = await guild.create_text_channel("boosts", category=category,
+                    topic="🚀 Server boosts celebrated here")
+                print(f"Created 'boosts' channel in {guild.name}")
             
-            return welcome_channel, leave_channel, boost_channel
+            return welcome_channel, leaves_channel, boosts_channel
             
         except discord.Forbidden:
             logging.warning(f"Missing permissions to create channels in {guild.name}")
@@ -142,8 +146,12 @@ class ServerEvents(commands.Cog):
         """Show current server boost count"""
         try:
             guild = interaction.guild
-            boost_count = guild.premium_subscription_count
-            boost_tier = guild.premium_tier
+            if not guild:
+                await interaction.response.send_message("This command can only be used in a server.", ephemeral=True)
+                return
+                
+            boost_count = guild.premium_subscription_count or 0
+            boost_tier = guild.premium_tier or 0
             
             embed = discord.Embed(
                 title="💎 Server Boost Status",
@@ -151,7 +159,8 @@ class ServerEvents(commands.Cog):
             )
             embed.add_field(name="Current Boosts", value=f"{boost_count}", inline=True)
             embed.add_field(name="Boost Tier", value=f"Level {boost_tier}", inline=True)
-            embed.set_thumbnail(url=guild.icon.url if guild.icon else None)
+            if guild.icon:
+                embed.set_thumbnail(url=guild.icon.url)
             
             await interaction.response.send_message(embed=embed)
             
