@@ -435,6 +435,7 @@ class UltraBot(commands.Bot):
             'cogs.role_management',
             'cogs.permission_fixer',
             'cogs.server_events',
+            'cogs.autonomous_ai',
 
         ]
         
