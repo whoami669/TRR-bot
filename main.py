@@ -437,7 +437,9 @@ class UltraBot(commands.Bot):
             'cogs.server_events',
             'cogs.autonomous_ai',
             'cogs.promotional_engine',
-
+            'cogs.sassy_ai',
+            'cogs.ai_entertainment',
+            'cogs.ai_games'
         ]
         
         for cog in cogs:
