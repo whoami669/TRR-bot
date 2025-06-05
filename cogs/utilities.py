@@ -43,7 +43,7 @@ class Utilities(commands.Cog):
         
         await interaction.response.send_message(embed=embed, file=file)
 
-    @app_commands.command(name="poll", description="Create a poll")
+    @app_commands.command(name="quickpoll", description="Create a poll")
     @app_commands.describe(
         question="Poll question",
         option1="First option",
@@ -87,7 +87,7 @@ class Utilities(commands.Cog):
         for i in range(len(options)):
             await message.add_reaction(reactions[i])
 
-    @app_commands.command(name="remind", description="Set a reminder")
+    @app_commands.command(name="reminder", description="Set a reminder")
     @app_commands.describe(
         time="Time in minutes",
         message="Reminder message"

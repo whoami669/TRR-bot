@@ -442,7 +442,7 @@ class UltraBot(commands.Bot):
             'cogs.ai_games',
             'cogs.reaction_roles',
             'cogs.advanced_moderation',
-            'cogs.music',
+            'cogs.enhanced_utilities',
             'cogs.giveaways',
             'cogs.tickets',
             'cogs.economy',

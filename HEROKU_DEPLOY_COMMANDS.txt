@@ -1,0 +1,25 @@
+# ULTRA BOT - HEROKU DEPLOYMENT COMMANDS
+# Copy and paste these commands in order
+
+# 1. Create Heroku app
+heroku create ultra-discord-bot-2025
+
+# 2. Set environment variables (replace with your actual tokens)
+heroku config:set DISCORD_TOKEN=your_discord_bot_token_here
+heroku config:set OPENAI_API_KEY=your_openai_api_key_here
+
+# 3. Deploy the bot
+git init
+git add .
+git commit -m "Deploy Ultra Bot with 94 commands"
+heroku git:remote -a ultra-discord-bot-2025
+git push heroku main
+
+# 4. Start the bot worker
+heroku ps:scale worker=1
+
+# 5. View logs to confirm deployment
+heroku logs --tail
+
+# Optional: View app status
+heroku ps
