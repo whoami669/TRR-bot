@@ -1,278 +1,320 @@
 import discord
 from discord.ext import commands
 from discord import app_commands
-import random
-import asyncio
-from datetime import datetime, timedelta
 import aiosqlite
+import random
+from datetime import datetime, timezone, timedelta
+from typing import Optional
 
 class Economy(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-
-    async def get_balance(self, guild_id, user_id):
-        async with aiosqlite.connect('ultrabot.db') as db:
-            async with db.execute(
-                'SELECT balance FROM economy WHERE guild_id = ? AND user_id = ?',
-                (guild_id, user_id)
-            ) as cursor:
-                result = await cursor.fetchone()
-                return result[0] if result else 0
-
-    async def update_balance(self, guild_id, user_id, amount):
-        async with aiosqlite.connect('ultrabot.db') as db:
+        self.db_path = 'economy.db'
+        
+    async def init_database(self):
+        async with aiosqlite.connect(self.db_path) as db:
             await db.execute('''
-                INSERT OR REPLACE INTO economy (guild_id, user_id, balance, last_daily, last_work, last_crime)
-                VALUES (?, ?, COALESCE((SELECT balance FROM economy WHERE guild_id = ? AND user_id = ?), 0) + ?, 
-                        COALESCE((SELECT last_daily FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT last_work FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT last_crime FROM economy WHERE guild_id = ? AND user_id = ?), 0))
-            ''', (guild_id, user_id, guild_id, user_id, amount, guild_id, user_id, guild_id, user_id, guild_id, user_id))
+                CREATE TABLE IF NOT EXISTS users (
+                    user_id INTEGER PRIMARY KEY,
+                    guild_id INTEGER NOT NULL,
+                    balance INTEGER DEFAULT 1000,
+                    bank INTEGER DEFAULT 0,
+                    last_daily TIMESTAMP,
+                    last_work TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
+            
+            await db.execute('''
+                CREATE TABLE IF NOT EXISTS transactions (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    guild_id INTEGER NOT NULL,
+                    amount INTEGER NOT NULL,
+                    transaction_type TEXT NOT NULL,
+                    description TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            ''')
             await db.commit()
 
-    @app_commands.command(name="balance", description="Check your or someone's balance")
+    async def cog_load(self):
+        await self.init_database()
+
+    async def get_user_data(self, user_id: int, guild_id: int):
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute('''
+                SELECT * FROM users WHERE user_id = ? AND guild_id = ?
+            ''', (user_id, guild_id))
+            result = await cursor.fetchone()
+            
+            if not result:
+                await db.execute('''
+                    INSERT INTO users (user_id, guild_id) VALUES (?, ?)
+                ''', (user_id, guild_id))
+                await db.commit()
+                return (user_id, guild_id, 1000, 0, None, None, datetime.now())
+            
+            return result
+
+    @app_commands.command(name="balance", description="Check your balance")
     @app_commands.describe(user="User to check balance for")
-    async def balance(self, interaction: discord.Interaction, user: discord.Member = None):
-        target = user or interaction.user
-        balance = await self.get_balance(interaction.guild.id, target.id)
+    async def balance(self, interaction: discord.Interaction, user: Optional[discord.Member] = None):
+        target_user = user or interaction.user
+        user_data = await self.get_user_data(target_user.id, interaction.guild_id)
         
         embed = discord.Embed(
-            title="💰 Balance",
-            description=f"{target.display_name}: **${balance:,}**",
-            color=discord.Color.green()
+            title=f"💰 {target_user.display_name}'s Balance",
+            color=0xf39c12
         )
-        embed.set_thumbnail(url=target.display_avatar.url)
+        embed.add_field(name="Wallet", value=f"${user_data[2]:,}", inline=True)
+        embed.add_field(name="Bank", value=f"${user_data[3]:,}", inline=True)
+        embed.add_field(name="Total", value=f"${user_data[2] + user_data[3]:,}", inline=True)
+        
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="daily", description="Claim your daily reward")
     async def daily(self, interaction: discord.Interaction):
-        async with aiosqlite.connect('ultrabot.db') as db:
-            async with db.execute(
-                'SELECT last_daily, daily_streak FROM economy WHERE guild_id = ? AND user_id = ?',
-                (interaction.guild.id, interaction.user.id)
-            ) as cursor:
-                result = await cursor.fetchone()
-                
-            last_daily = result[0] if result and result[0] else 0
-            streak = result[1] if result and result[1] else 0
+        user_data = await self.get_user_data(interaction.user.id, interaction.guild_id)
+        
+        if user_data[4]:  # last_daily
+            last_daily = datetime.fromisoformat(user_data[4])
+            next_daily = last_daily + timedelta(days=1)
             
-            now = datetime.now().timestamp()
-            day_seconds = 86400  # 24 hours
-            
-            if now - last_daily < day_seconds:
-                next_daily = last_daily + day_seconds
-                wait_time = int(next_daily - now)
-                hours, remainder = divmod(wait_time, 3600)
-                minutes, seconds = divmod(remainder, 60)
+            if datetime.now(timezone.utc) < next_daily:
+                time_left = next_daily - datetime.now(timezone.utc)
+                hours, remainder = divmod(int(time_left.total_seconds()), 3600)
+                minutes, _ = divmod(remainder, 60)
                 
                 embed = discord.Embed(
-                    title="⏰ Daily Cooldown",
-                    description=f"You can claim your daily reward in {hours}h {minutes}m {seconds}s",
-                    color=discord.Color.red()
+                    title="⏰ Daily Already Claimed",
+                    description=f"You can claim your daily reward in {hours}h {minutes}m",
+                    color=0xe74c3c
                 )
-                await interaction.response.send_message(embed=embed, ephemeral=True)
+                await interaction.response.send_message(embed=embed)
                 return
-            
-            # Check if streak continues (claimed within 48 hours)
-            if now - last_daily <= day_seconds * 2:
-                streak += 1
-            else:
-                streak = 1
-            
-            # Calculate reward based on streak
-            base_reward = 100
-            streak_bonus = min(streak * 10, 500)  # Max 500 bonus
-            total_reward = base_reward + streak_bonus
-            
-            await self.update_balance(interaction.guild.id, interaction.user.id, total_reward)
+        
+        daily_amount = random.randint(500, 1500)
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute('''
+                UPDATE users SET balance = balance + ?, last_daily = ?
+                WHERE user_id = ? AND guild_id = ?
+            ''', (daily_amount, datetime.now(timezone.utc).isoformat(), interaction.user.id, interaction.guild_id))
             
             await db.execute('''
-                INSERT OR REPLACE INTO economy (guild_id, user_id, balance, last_daily, daily_streak, last_work, last_crime)
-                VALUES (?, ?, COALESCE((SELECT balance FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        ?, ?, 
-                        COALESCE((SELECT last_work FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT last_crime FROM economy WHERE guild_id = ? AND user_id = ?), 0))
-            ''', (interaction.guild.id, interaction.user.id, interaction.guild.id, interaction.user.id,
-                  now, streak, interaction.guild.id, interaction.user.id, interaction.guild.id, interaction.user.id))
+                INSERT INTO transactions (user_id, guild_id, amount, transaction_type, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (interaction.user.id, interaction.guild_id, daily_amount, "daily", "Daily reward"))
             await db.commit()
         
         embed = discord.Embed(
-            title="💰 Daily Reward Claimed!",
-            description=f"You received **${total_reward:,}**",
-            color=discord.Color.green()
+            title="🎁 Daily Reward Claimed",
+            description=f"You received **${daily_amount:,}**!",
+            color=0x2ecc71
         )
-        embed.add_field(name="Streak", value=f"{streak} days", inline=True)
-        embed.add_field(name="Bonus", value=f"${streak_bonus:,}", inline=True)
         await interaction.response.send_message(embed=embed)
 
     @app_commands.command(name="work", description="Work to earn money")
     async def work(self, interaction: discord.Interaction):
-        async with aiosqlite.connect('ultrabot.db') as db:
-            async with db.execute(
-                'SELECT last_work FROM economy WHERE guild_id = ? AND user_id = ?',
-                (interaction.guild.id, interaction.user.id)
-            ) as cursor:
-                result = await cursor.fetchone()
-                
-            last_work = result[0] if result and result[0] else 0
-            now = datetime.now().timestamp()
-            cooldown = 3600  # 1 hour
+        user_data = await self.get_user_data(interaction.user.id, interaction.guild_id)
+        
+        if user_data[5]:  # last_work
+            last_work = datetime.fromisoformat(user_data[5])
+            next_work = last_work + timedelta(hours=1)
             
-            if now - last_work < cooldown:
-                wait_time = int(last_work + cooldown - now)
-                hours, remainder = divmod(wait_time, 3600)
-                minutes, seconds = divmod(remainder, 60)
+            if datetime.now(timezone.utc) < next_work:
+                time_left = next_work - datetime.now(timezone.utc)
+                minutes = int(time_left.total_seconds() / 60)
                 
                 embed = discord.Embed(
-                    title="⏰ Work Cooldown",
-                    description=f"You can work again in {hours}h {minutes}m {seconds}s",
-                    color=discord.Color.red()
+                    title="😴 Still Tired",
+                    description=f"You can work again in {minutes} minutes",
+                    color=0xe74c3c
                 )
-                await interaction.response.send_message(embed=embed, ephemeral=True)
+                await interaction.response.send_message(embed=embed)
                 return
-            
-            jobs = [
-                ("Developer", 150, 300),
-                ("Teacher", 100, 200),
-                ("Chef", 120, 250),
-                ("Artist", 80, 180),
-                ("Writer", 90, 220),
-                ("Musician", 110, 240),
-                ("Doctor", 200, 400),
-                ("Engineer", 180, 350)
-            ]
-            
-            job, min_pay, max_pay = random.choice(jobs)
-            earned = random.randint(min_pay, max_pay)
-            
-            await self.update_balance(interaction.guild.id, interaction.user.id, earned)
+        
+        jobs = [
+            ("programming", 200, 500),
+            ("delivery driver", 150, 400),
+            ("cashier", 100, 300),
+            ("janitor", 80, 250),
+            ("freelancer", 300, 600)
+        ]
+        
+        job, min_pay, max_pay = random.choice(jobs)
+        earnings = random.randint(min_pay, max_pay)
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute('''
+                UPDATE users SET balance = balance + ?, last_work = ?
+                WHERE user_id = ? AND guild_id = ?
+            ''', (earnings, datetime.now(timezone.utc).isoformat(), interaction.user.id, interaction.guild_id))
             
             await db.execute('''
-                INSERT OR REPLACE INTO economy (guild_id, user_id, balance, last_work, last_daily, daily_streak, last_crime)
-                VALUES (?, ?, COALESCE((SELECT balance FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        ?, 
-                        COALESCE((SELECT last_daily FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT daily_streak FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT last_crime FROM economy WHERE guild_id = ? AND user_id = ?), 0))
-            ''', (interaction.guild.id, interaction.user.id, interaction.guild.id, interaction.user.id,
-                  now, interaction.guild.id, interaction.user.id, interaction.guild.id, interaction.user.id,
-                  interaction.guild.id, interaction.user.id))
+                INSERT INTO transactions (user_id, guild_id, amount, transaction_type, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (interaction.user.id, interaction.guild_id, earnings, "work", f"Worked as {job}"))
             await db.commit()
         
         embed = discord.Embed(
-            title="💼 Work Complete!",
-            description=f"You worked as a **{job}** and earned **${earned:,}**",
-            color=discord.Color.green()
+            title="💼 Work Complete",
+            description=f"You worked as a **{job}** and earned **${earnings:,}**!",
+            color=0x2ecc71
         )
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="crime", description="Commit a crime for money (risky)")
-    async def crime(self, interaction: discord.Interaction):
-        async with aiosqlite.connect('ultrabot.db') as db:
-            async with db.execute(
-                'SELECT last_crime FROM economy WHERE guild_id = ? AND user_id = ?',
-                (interaction.guild.id, interaction.user.id)
-            ) as cursor:
-                result = await cursor.fetchone()
-                
-            last_crime = result[0] if result and result[0] else 0
-            now = datetime.now().timestamp()
-            cooldown = 7200  # 2 hours
-            
-            if now - last_crime < cooldown:
-                wait_time = int(last_crime + cooldown - now)
-                hours, remainder = divmod(wait_time, 3600)
-                minutes, seconds = divmod(remainder, 60)
-                
-                embed = discord.Embed(
-                    title="⏰ Crime Cooldown",
-                    description=f"You can commit a crime again in {hours}h {minutes}m {seconds}s",
-                    color=discord.Color.red()
-                )
-                await interaction.response.send_message(embed=embed, ephemeral=True)
+    @app_commands.command(name="deposit", description="Deposit money to your bank")
+    @app_commands.describe(amount="Amount to deposit (or 'all')")
+    async def deposit(self, interaction: discord.Interaction, amount: str):
+        user_data = await self.get_user_data(interaction.user.id, interaction.guild_id)
+        wallet_balance = user_data[2]
+        
+        if amount.lower() == "all":
+            deposit_amount = wallet_balance
+        else:
+            try:
+                deposit_amount = int(amount)
+            except ValueError:
+                await interaction.response.send_message("Invalid amount. Use a number or 'all'")
                 return
-            
-            crimes = [
-                ("Shoplifting", 200, 500, 0.7),
-                ("Pickpocketing", 150, 400, 0.6),
-                ("Bank Robbery", 500, 1000, 0.3),
-                ("Hacking", 300, 800, 0.5),
-                ("Art Theft", 400, 900, 0.4)
-            ]
-            
-            crime, min_reward, max_reward, success_rate = random.choice(crimes)
-            success = random.random() < success_rate
-            
-            if success:
-                earned = random.randint(min_reward, max_reward)
-                await self.update_balance(interaction.guild.id, interaction.user.id, earned)
-                
-                embed = discord.Embed(
-                    title="🎯 Crime Successful!",
-                    description=f"You successfully committed **{crime}** and earned **${earned:,}**",
-                    color=discord.Color.green()
-                )
-            else:
-                fine = random.randint(100, 300)
-                current_balance = await self.get_balance(interaction.guild.id, interaction.user.id)
-                fine = min(fine, current_balance)  # Can't lose more than you have
-                
-                if fine > 0:
-                    await self.update_balance(interaction.guild.id, interaction.user.id, -fine)
-                
-                embed = discord.Embed(
-                    title="🚨 Crime Failed!",
-                    description=f"You were caught attempting **{crime}** and fined **${fine:,}**",
-                    color=discord.Color.red()
-                )
-            
+        
+        if deposit_amount <= 0:
+            await interaction.response.send_message("Amount must be positive")
+            return
+        
+        if deposit_amount > wallet_balance:
+            await interaction.response.send_message("You don't have enough money in your wallet")
+            return
+        
+        async with aiosqlite.connect(self.db_path) as db:
             await db.execute('''
-                INSERT OR REPLACE INTO economy (guild_id, user_id, balance, last_crime, last_daily, daily_streak, last_work)
-                VALUES (?, ?, COALESCE((SELECT balance FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        ?, 
-                        COALESCE((SELECT last_daily FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT daily_streak FROM economy WHERE guild_id = ? AND user_id = ?), 0),
-                        COALESCE((SELECT last_work FROM economy WHERE guild_id = ? AND user_id = ?), 0))
-            ''', (interaction.guild.id, interaction.user.id, interaction.guild.id, interaction.user.id,
-                  now, interaction.guild.id, interaction.user.id, interaction.guild.id, interaction.user.id,
-                  interaction.guild.id, interaction.user.id))
+                UPDATE users SET balance = balance - ?, bank = bank + ?
+                WHERE user_id = ? AND guild_id = ?
+            ''', (deposit_amount, deposit_amount, interaction.user.id, interaction.guild_id))
             await db.commit()
         
+        embed = discord.Embed(
+            title="🏦 Deposit Successful",
+            description=f"Deposited **${deposit_amount:,}** to your bank",
+            color=0x2ecc71
+        )
         await interaction.response.send_message(embed=embed)
 
-    @app_commands.command(name="leaderboard", description="View the server's richest members")
+    @app_commands.command(name="withdraw", description="Withdraw money from your bank")
+    @app_commands.describe(amount="Amount to withdraw (or 'all')")
+    async def withdraw(self, interaction: discord.Interaction, amount: str):
+        user_data = await self.get_user_data(interaction.user.id, interaction.guild_id)
+        bank_balance = user_data[3]
+        
+        if amount.lower() == "all":
+            withdraw_amount = bank_balance
+        else:
+            try:
+                withdraw_amount = int(amount)
+            except ValueError:
+                await interaction.response.send_message("Invalid amount. Use a number or 'all'")
+                return
+        
+        if withdraw_amount <= 0:
+            await interaction.response.send_message("Amount must be positive")
+            return
+        
+        if withdraw_amount > bank_balance:
+            await interaction.response.send_message("You don't have enough money in your bank")
+            return
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute('''
+                UPDATE users SET balance = balance + ?, bank = bank - ?
+                WHERE user_id = ? AND guild_id = ?
+            ''', (withdraw_amount, withdraw_amount, interaction.user.id, interaction.guild_id))
+            await db.commit()
+        
+        embed = discord.Embed(
+            title="🏦 Withdrawal Successful",
+            description=f"Withdrew **${withdraw_amount:,}** from your bank",
+            color=0x2ecc71
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="pay", description="Send money to another user")
+    @app_commands.describe(user="User to send money to", amount="Amount to send")
+    async def pay(self, interaction: discord.Interaction, user: discord.Member, amount: int):
+        if user.id == interaction.user.id:
+            await interaction.response.send_message("You can't pay yourself!")
+            return
+        
+        if amount <= 0:
+            await interaction.response.send_message("Amount must be positive")
+            return
+        
+        sender_data = await self.get_user_data(interaction.user.id, interaction.guild_id)
+        if amount > sender_data[2]:
+            await interaction.response.send_message("You don't have enough money")
+            return
+        
+        await self.get_user_data(user.id, interaction.guild_id)  # Ensure recipient exists
+        
+        async with aiosqlite.connect(self.db_path) as db:
+            await db.execute('''
+                UPDATE users SET balance = balance - ?
+                WHERE user_id = ? AND guild_id = ?
+            ''', (amount, interaction.user.id, interaction.guild_id))
+            
+            await db.execute('''
+                UPDATE users SET balance = balance + ?
+                WHERE user_id = ? AND guild_id = ?
+            ''', (amount, user.id, interaction.guild_id))
+            
+            await db.execute('''
+                INSERT INTO transactions (user_id, guild_id, amount, transaction_type, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (interaction.user.id, interaction.guild_id, -amount, "transfer", f"Sent to {user.display_name}"))
+            
+            await db.execute('''
+                INSERT INTO transactions (user_id, guild_id, amount, transaction_type, description)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (user.id, interaction.guild_id, amount, "transfer", f"Received from {interaction.user.display_name}"))
+            await db.commit()
+        
+        embed = discord.Embed(
+            title="💸 Payment Sent",
+            description=f"Sent **${amount:,}** to {user.mention}",
+            color=0x2ecc71
+        )
+        await interaction.response.send_message(embed=embed)
+
+    @app_commands.command(name="leaderboard", description="View the richest users")
     async def leaderboard(self, interaction: discord.Interaction):
-        async with aiosqlite.connect('ultrabot.db') as db:
-            async with db.execute(
-                'SELECT user_id, balance FROM economy WHERE guild_id = ? ORDER BY balance DESC LIMIT 10',
-                (interaction.guild.id,)
-            ) as cursor:
-                results = await cursor.fetchall()
+        async with aiosqlite.connect(self.db_path) as db:
+            cursor = await db.execute('''
+                SELECT user_id, balance + bank as total
+                FROM users WHERE guild_id = ?
+                ORDER BY total DESC LIMIT 10
+            ''', (interaction.guild_id,))
+            results = await cursor.fetchall()
         
         if not results:
-            embed = discord.Embed(
-                title="💰 Economy Leaderboard",
-                description="No economy data found for this server",
-                color=discord.Color.blue()
-            )
-            await interaction.response.send_message(embed=embed)
+            await interaction.response.send_message("No users found")
             return
         
         embed = discord.Embed(
-            title="💰 Economy Leaderboard",
-            color=discord.Color.gold()
+            title="💰 Richest Users",
+            color=0xf39c12
         )
         
-        medals = ["🥇", "🥈", "🥉"]
-        description = ""
-        
-        for i, (user_id, balance) in enumerate(results):
-            user = self.bot.get_user(user_id)
+        for i, (user_id, total) in enumerate(results, 1):
+            user = interaction.guild.get_member(user_id)
             if user:
-                medal = medals[i] if i < 3 else f"{i+1}."
-                description += f"{medal} **{user.display_name}** - ${balance:,}\n"
+                medal = "🥇" if i == 1 else "🥈" if i == 2 else "🥉" if i == 3 else f"{i}."
+                embed.add_field(
+                    name=f"{medal} {user.display_name}",
+                    value=f"${total:,}",
+                    inline=False
+                )
         
-        embed.description = description
         await interaction.response.send_message(embed=embed)
 
 async def setup(bot):

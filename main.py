@@ -440,7 +440,14 @@ class UltraBot(commands.Bot):
             'cogs.sassy_ai',
             'cogs.ai_entertainment',
             'cogs.ai_games',
-            'cogs.reaction_roles'
+            'cogs.reaction_roles',
+            'cogs.advanced_moderation',
+            'cogs.music',
+            'cogs.giveaways',
+            'cogs.tickets',
+            'cogs.economy',
+            'cogs.fun_commands',
+            'cogs.utilities'
         ]
         
         for cog in cogs:
