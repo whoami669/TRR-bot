@@ -1,0 +1,13 @@
+# PowerShell commands to deploy new AI features
+
+# Copy these three files to your discord-bot-clean\cogs\ folder:
+# 1. Copy the content from Replit cogs/sassy_ai.py to your local cogs/sassy_ai.py
+# 2. Copy the content from Replit cogs/ai_entertainment.py to your local cogs/ai_entertainment.py  
+# 3. Copy the content from Replit cogs/ai_games.py to your local cogs/ai_games.py
+
+# Then run these commands:
+cd "C:\Users\darea\Downloads\discord-bot-clean"
+git add .
+git commit -m "Add sassy AI responses and 13 new AI entertainment commands"
+git push heroku main
+heroku logs --tail --app my-discord-bot-2025

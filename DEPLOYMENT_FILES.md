@@ -1,3 +1,11 @@
+# New AI Features Deployment
+
+## Files to Copy to Your Local Bot
+
+Copy these three files to your `C:\Users\darea\Downloads\discord-bot-clean\cogs\` folder:
+
+### 1. sassy_ai.py
+```python
 import discord
 from discord.ext import commands
 import openai
@@ -102,7 +110,8 @@ class SassyAI(commands.Cog):
                 temperature=0.9
             )
             
-            return response.choices[0].message.content.strip()
+            result = response.choices[0].message.content
+            return result.strip() if result else random.choice(self.quick_responses)
             
         except Exception as e:
             # Fallback to quick responses if AI fails
@@ -110,3 +119,42 @@ class SassyAI(commands.Cog):
 
 async def setup(bot):
     await bot.add_cog(SassyAI(bot))
+```
+
+## Deployment Commands
+
+After copying all three files, run these PowerShell commands:
+
+```powershell
+cd "C:\Users\darea\Downloads\discord-bot-clean"
+git add .
+git commit -m "Add sassy AI responses and 13 new AI entertainment commands"
+git push heroku main
+heroku logs --tail --app my-discord-bot-2025
+```
+
+## New Features Added
+
+### Sassy AI
+- Responds rudely when bot is mentioned or replied to
+- 30-second cooldown per user
+- 70% AI-generated responses, 30% quick comebacks
+- Typing indicator for dramatic effect
+
+### AI Entertainment (8 commands)
+- /ai-persona - Chat with wizard, detective, comedian, therapist, coach
+- /ai-story - Interactive stories in multiple genres
+- /ai-roast - Friendly AI roasts
+- /ai-advice - Therapist advice
+- /ai-motivate - Motivational coaching
+- /ai-create - Collaborative creativity (poems, lyrics, stories, business ideas)
+- /ai-debate - Balanced debates on any topic
+
+### AI Games (5 commands)
+- /twenty-questions - Interactive 20 Questions game
+- /ai-riddle - AI-generated riddles with difficulty levels
+- /ai-trivia - Multiple choice trivia with interactive buttons
+- /ai-wordgame - Story building, rhyming, word association
+- /ai-mystery - Interactive mystery scenarios
+
+Total: 13 new AI-powered commands + sassy mention responses
